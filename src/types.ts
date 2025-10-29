@@ -125,7 +125,7 @@ export type UpdatePoliticianCommand = {
  * Extends profile entity with email from auth.users
  */
 export type ProfileDTO = ProfileEntity & {
-  email: string;
+  email: string | null;
 };
 
 /**

@@ -13,12 +13,12 @@ This document tracks the implementation status of all endpoints defined in the [
 | **Parties** | 4 | **2** ✅ | 0 | 2 |
 | **Politicians** | 4 | **2** ✅ | 0 | 2 |
 | **Statements** | 6 | **6** ✅ | 0 | 0 |
-| **Profiles** | 3 | 0 | 0 | 3 |
+| **Profiles** | 3 | **3** ✅ | 0 | 0 |
 | **Reports** | 1 | 0 | 0 | 1 |
 | **Authentication** | 3 | 0 (Supabase) | 0 | 0 |
-| **TOTAL** | 21 | **10** | 0 | 11 |
+| **TOTAL** | 21 | **13** | 0 | 8 |
 
-**Overall Progress:** 10/21 (47.6%)
+**Overall Progress:** 13/21 (61.9%)
 
 ---
 
@@ -219,16 +219,59 @@ This document tracks the implementation status of all endpoints defined in the [
 
 ---
 
-### 2.4 Profiles
+### 2.4 Profiles ✅ COMPLETE
 
 | Endpoint | Method | Status | Priority | Notes |
 |----------|--------|--------|----------|-------|
-| `/api/profiles/me` | GET | ❌ Not Started | Medium | Get authenticated user profile |
-| `/api/profiles/me` | PATCH | ❌ Not Started | Medium | Update user profile |
-| `/api/profiles/:id` | GET | ❌ Not Started | Low | Get public profile |
+| `/api/profiles/me` | GET | ✅ **IMPLEMENTED** | Medium | Get authenticated user profile |
+| `/api/profiles/me` | PATCH | ✅ **IMPLEMENTED** | Medium | Update user profile |
+| `/api/profiles/:id` | GET | ✅ **IMPLEMENTED** | Low | Get public profile |
 
-**Dependencies:** None (uses Supabase auth)  
-**Implementation File:** `src/pages/api/profiles/me.ts`, `src/pages/api/profiles/[id].ts`
+**Implementation Details:**
+
+#### ✅ GET /api/profiles/me
+- **File:** `src/pages/api/profiles/me.ts` (GET handler)
+- **Features Implemented:**
+  - ✅ Authentication required (JWT)
+  - ✅ Returns full profile with email
+  - ✅ Includes admin status
+  - ✅ Error handling (401, 404, 500)
+- **User Stories:** User settings, profile management
+
+#### ✅ PATCH /api/profiles/me
+- **File:** `src/pages/api/profiles/me.ts` (PATCH handler)
+- **Features Implemented:**
+  - ✅ Authentication required (JWT)
+  - ✅ Update display_name (1-100 chars)
+  - ✅ Whitespace trimming
+  - ✅ Validation errors
+  - ✅ Protected fields (is_admin cannot be changed)
+  - ✅ Error handling (400, 401, 404, 500)
+- **User Stories:** Profile customization
+
+#### ✅ GET /api/profiles/:id
+- **File:** `src/pages/api/profiles/[id].ts`
+- **Features Implemented:**
+  - ✅ Public endpoint (no auth required)
+  - ✅ UUID validation
+  - ✅ Returns minimal public data only
+  - ✅ Privacy-preserving (no email, no admin status)
+  - ✅ Caching headers (5 minutes)
+  - ✅ Error handling (400, 404, 500)
+- **User Stories:** User attribution, public profiles
+
+**Supporting Files:**
+- `src/lib/services/profile-service.ts` - Business logic (4 public methods)
+  - `getAuthenticatedProfile(userId)` - Fetch user's full profile
+  - `updateProfile(userId, command)` - Update profile with validation
+  - `getPublicProfile(userId)` - Fetch public profile
+  - `verifyProfileExists(userId)` - Check profile existence
+- `src/types.ts` - Type definitions (ProfileDTO, PublicProfileDTO, UpdateProfileCommand)
+
+**Documentation:** `PROFILES_API_DOCUMENTATION.md`
+
+**Dependencies:** ✅ Supabase Auth (completed)  
+**Implementation Files:** ✅ Complete
 
 ---
 
@@ -314,24 +357,34 @@ Priority: **HIGH** | Status: ✅ **COMPLETE**
 
 ---
 
-### Phase 2: User Management (MVP Critical)
-Priority: **HIGH** | Target: NEXT | Status: ⏳ **NOT STARTED**
+### Phase 2: User Management (MVP Critical) - ✅ COMPLETED
+Priority: **HIGH** | Status: ✅ **COMPLETE**
 
-9. ⏳ `GET /api/profiles/me` - Get authenticated user profile
-10. ⏳ `PATCH /api/profiles/me` - Update user profile
-11. ⏳ `GET /api/profiles/:id` - Get public profile
+9. ✅ ~~`GET /api/profiles/me`~~ - Get authenticated user profile ✅ COMPLETED
+10. ✅ ~~`PATCH /api/profiles/me`~~ - Update user profile ✅ COMPLETED
+11. ✅ ~~`GET /api/profiles/:id`~~ - Get public profile ✅ COMPLETED
 
-**Phase 2 Goal:** Enable user profile management for personalization and user settings.
+**Phase 2 Summary:**
+- ✅ User can view their own profile with email and admin status
+- ✅ User can update their display name
+- ✅ Public profiles accessible for attribution
+- ✅ Privacy-preserving (public profiles hide sensitive data)
+- 📝 Documentation: `PROFILES_API_DOCUMENTATION.md`
 
 ---
 
-### Phase 3: Edit/Delete with Grace Period (MVP Critical)
-Priority: **HIGH** | Target: After Phase 2 | Status: ⏳ **NOT STARTED**
+### Phase 3: Edit/Delete with Grace Period (MVP Critical) - ✅ COMPLETED
+Priority: **HIGH** | Status: ✅ **COMPLETE**
 
-12. ⏳ `PATCH /api/statements/:id` - Edit statement (US-006)
-13. ⏳ `DELETE /api/statements/:id` - Delete statement (US-007)
+12. ✅ ~~`PATCH /api/statements/:id`~~ - Edit statement (US-006) ✅ COMPLETED
+13. ✅ ~~`DELETE /api/statements/:id`~~ - Delete statement (US-007) ✅ COMPLETED
 
-**Phase 3 Goal:** Complete statement lifecycle management with grace period enforcement.
+**Phase 3 Summary:**
+- ✅ Statement edit with 15-minute grace period
+- ✅ Statement soft-delete with 15-minute grace period
+- ✅ Ownership validation
+- ✅ Cannot edit/delete after grace period expires
+- ✅ Cannot edit/delete already deleted statements
 
 ---
 
@@ -358,71 +411,71 @@ Priority: **LOW** | Target: Post-MVP | Status: ⏳ **NOT STARTED**
 
 ## Next Steps
 
-### ✅ Phase 1 Complete - Ready for Phase 2
+### ✅ Phases 1, 2, and 3 Complete - Ready for Phase 4
 
-**Phase 1 Achievements:**
+**Completed Achievements:**
+
+**Phase 1: Core Statement Functionality ✅**
 - ✅ All core statement endpoints implemented
 - ✅ Full CRUD for parties and politicians (read-only)
 - ✅ Statement creation functionality
 - ✅ Recent statements feed
 - ✅ Politician timeline with time filtering
-- ✅ Comprehensive validation and error handling
+
+**Phase 2: User Management ✅**
+- ✅ User can view their own profile
+- ✅ User can update their display name
+- ✅ Public profiles for attribution
+- ✅ Privacy-preserving design
+
+**Phase 3: Grace Period Enforcement ✅**
+- ✅ Statement edit with 15-minute window
+- ✅ Statement soft-delete with 15-minute window
+- ✅ Ownership validation
 - ✅ Permission flag calculation
-- ✅ Zero linter errors
 
-**Testing Phase 1:**
-- 📝 See `PHASE1_TESTING_GUIDE.md` for test scenarios
-- 🧪 Manual testing recommended before Phase 2
-- 🔍 Verify all endpoints work with real data
+**Quality Metrics:**
+- ✅ Zero linter errors across all files
+- ✅ Comprehensive validation and error handling
+- ✅ Full documentation for all endpoints
+- ✅ Type-safe TypeScript throughout
 
 ---
 
-### Immediate Next: Phase 2 - User Management
+### Immediate Next: Phase 4 - Content Moderation
 
-**Recommended Implementation Order:**
+**Next Implementation:**
 
-1. **`GET /api/profiles/me`** - Get Authenticated User Profile
-   - Complexity: Low
-   - Reuses: Auth utilities already implemented
-   - Critical for: User settings, personalization
-   - Required fields: id, display_name, email, is_admin, created_at
+1. **Create `reports` table** in database migration
+   - Fields: id, statement_id, reason, comment, reported_by_user_id, created_at
+   - Enum for reason: spam, inaccurate, inappropriate, off_topic, other
 
-2. **`PATCH /api/profiles/me`** - Update User Profile
-   - Complexity: Low
-   - Validation: display_name (1-100 chars)
-   - Updates: Only display_name (is_admin locked)
+2. **`POST /api/statements/:statement_id/reports`** - Report Statement (US-008)
+   - Complexity: Medium
+   - Anonymous reporting allowed
+   - Rate limiting required
+   - Validation: reason (enum), comment (max 500 chars)
 
-3. **`GET /api/profiles/:id`** - Get Public Profile
-   - Complexity: Low
-   - Public view: Only id, display_name, created_at
-   - Used by: Statement attribution, public user pages
-
-**Phase 2 Service Layer:**
-- Create `src/lib/services/profile-service.ts`
+**Phase 4 Service Layer:**
+- Create `src/lib/services/report-service.ts`
 - Methods needed:
-  - `getAuthenticatedProfile(userId)`
-  - `updateProfile(userId, updates)`
-  - `getPublicProfile(userId)`
+  - `createReport(statementId, command, userId?)`
+  - Rate limiting logic
 
-**Phase 2 Files to Create:**
-- `src/pages/api/profiles/me.ts` - GET and PATCH handlers
-- `src/pages/api/profiles/[id].ts` - GET handler
-- `src/lib/services/profile-service.ts` - Business logic
+**Phase 4 Files to Create:**
+- `supabase/migrations/[timestamp]_add_reports_table.sql` - Database schema
+- `src/pages/api/statements/[id]/reports.ts` - POST handler
+- `src/lib/services/report-service.ts` - Business logic
 
 ---
 
-### Future Phases
+### Future: Phase 5 - Admin Endpoints (Post-MVP)
 
-**Phase 3: Edit/Delete Statements**
-- `PATCH /api/statements/:id` - Grace period + ownership validation
-- `DELETE /api/statements/:id` - Soft delete with grace period
-
-**Phase 4: Content Moderation**
-- `POST /api/statements/:statement_id/reports` - Report submission
-- Requires: `reports` table creation in database
-
-**Phase 5: Admin Endpoints (Post-MVP)**
-- Party and politician management (admin-only)
+**Admin Content Management:**
+- `POST /api/parties` - Create party (admin-only)
+- `PATCH /api/parties/:id` - Update party (admin-only)
+- `POST /api/politicians` - Create politician (admin-only)
+- `PATCH /api/politicians/:id` - Update politician (admin-only)
 
 ---
 
@@ -474,5 +527,7 @@ Priority: **LOW** | Target: Post-MVP | Status: ⏳ **NOT STARTED**
 
 ---
 
-**Last Implementation:** Full Statements API Complete - All 6 endpoints including `PATCH /api/statements/:id` and `DELETE /api/statements/:id` with grace period enforcement (October 29, 2025)
+**Last Implementation:** Profiles API Complete - All 3 endpoints including authenticated profile management and public profiles (October 29, 2025)
+
+**Previous:** Full Statements API Complete - All 6 endpoints including `PATCH /api/statements/:id` and `DELETE /api/statements/:id` with grace period enforcement
 
