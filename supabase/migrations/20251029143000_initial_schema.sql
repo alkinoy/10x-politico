@@ -114,7 +114,7 @@ create table statements (
     politician_id uuid not null references politicians(id) on delete restrict,
     statement_text text not null check (length(trim(statement_text)) >= 10 and length(statement_text) <= 5000),
     statement_timestamp timestamptz not null,
-    created_by_user_id uuid not null references auth.users(id) on delete restrict,
+    created_by_user_id uuid not null references profiles(id) on delete restrict,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
     deleted_at timestamptz,
@@ -126,7 +126,7 @@ comment on table statements is 'Political statements with dual timestamp trackin
 comment on column statements.politician_id is 'Politician who made the statement (foreign key)';
 comment on column statements.statement_text is 'The actual statement content (10-5000 characters)';
 comment on column statements.statement_timestamp is 'When the politician actually made the statement (user-provided)';
-comment on column statements.created_by_user_id is 'User who submitted this statement (for ownership tracking)';
+comment on column statements.created_by_user_id is 'User who submitted this statement (foreign key to profiles for ownership tracking)';
 comment on column statements.created_at is 'When the record was created in the database';
 comment on column statements.deleted_at is 'Soft delete timestamp (null = active, non-null = deleted)';
 
@@ -396,6 +396,7 @@ create policy "authenticated_users_select_statements"
 
 -- authenticated users can insert statements
 -- ownership is established via created_by_user_id (set to auth.uid() at application layer)
+-- note: profiles.id = auth.users.id, so auth.uid() = created_by_user_id is valid
 create policy "authenticated_users_insert_statements"
   on statements
   for insert
