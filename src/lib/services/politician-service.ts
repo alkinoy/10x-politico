@@ -3,13 +3,8 @@
  * Handles business logic for politician-related operations
  */
 
-import { getSupabaseClient } from '@/db/client';
-import type {
-  PoliticianDTO,
-  PoliticianDetailDTO,
-  PoliticiansQueryParams,
-  PaginatedResponse,
-} from '@/types';
+import { getSupabaseClient } from "@/db/client";
+import type { PoliticianDTO, PoliticianDetailDTO, PoliticiansQueryParams, PaginatedResponse } from "@/types";
 
 export class PoliticianService {
   private supabase;
@@ -25,24 +20,13 @@ export class PoliticianService {
    * @param queryParams - Query parameters for search, filter, sorting, and pagination
    * @returns Paginated response with politician data
    */
-  async getAllPoliticians(
-    queryParams: PoliticiansQueryParams
-  ): Promise<PaginatedResponse<PoliticianDTO>> {
-    const {
-      page = 1,
-      limit = 50,
-      search,
-      party_id,
-      sort = 'last_name',
-      order = 'asc',
-    } = queryParams;
+  async getAllPoliticians(queryParams: PoliticiansQueryParams): Promise<PaginatedResponse<PoliticianDTO>> {
+    const { page = 1, limit = 50, search, party_id, sort = "last_name", order = "asc" } = queryParams;
 
     // Build base query with party join
-    let countQuery = this.supabase
-      .from('politicians')
-      .select('*', { count: 'exact', head: true });
+    let countQuery = this.supabase.from("politicians").select("*", { count: "exact", head: true });
 
-    let dataQuery = this.supabase.from('politicians').select(
+    let dataQuery = this.supabase.from("politicians").select(
       `
         id,
         first_name,
@@ -63,18 +47,14 @@ export class PoliticianService {
     // Apply search filter if provided
     if (search && search.trim().length > 0) {
       const searchTerm = `%${search.trim()}%`;
-      countQuery = countQuery.or(
-        `first_name.ilike.${searchTerm},last_name.ilike.${searchTerm}`
-      );
-      dataQuery = dataQuery.or(
-        `first_name.ilike.${searchTerm},last_name.ilike.${searchTerm}`
-      );
+      countQuery = countQuery.or(`first_name.ilike.${searchTerm},last_name.ilike.${searchTerm}`);
+      dataQuery = dataQuery.or(`first_name.ilike.${searchTerm},last_name.ilike.${searchTerm}`);
     }
 
     // Apply party filter if provided
     if (party_id) {
-      countQuery = countQuery.eq('party_id', party_id);
-      dataQuery = dataQuery.eq('party_id', party_id);
+      countQuery = countQuery.eq("party_id", party_id);
+      dataQuery = dataQuery.eq("party_id", party_id);
     }
 
     // Get total count
@@ -92,7 +72,7 @@ export class PoliticianService {
 
     // Apply sorting and pagination
     const { data, error } = await dataQuery
-      .order(sort, { ascending: order === 'asc' })
+      .order(sort, { ascending: order === "asc" })
       .range(offset, offset + limit - 1);
 
     if (error) {
@@ -146,7 +126,7 @@ export class PoliticianService {
   async getPoliticianById(politicianId: string): Promise<PoliticianDetailDTO | null> {
     // Fetch politician with full party details
     const { data, error } = await this.supabase
-      .from('politicians')
+      .from("politicians")
       .select(
         `
         id,
@@ -165,12 +145,12 @@ export class PoliticianService {
         )
       `
       )
-      .eq('id', politicianId)
+      .eq("id", politicianId)
       .single();
 
     if (error) {
       // Handle "not found" vs other errors
-      if (error.code === 'PGRST116') {
+      if (error.code === "PGRST116") {
         // PostgreSQL not found error
         return null;
       }
@@ -179,10 +159,10 @@ export class PoliticianService {
 
     // Count statements for this politician
     const { count: statementsCount } = await this.supabase
-      .from('statements')
-      .select('*', { count: 'exact', head: true })
-      .eq('politician_id', politicianId)
-      .is('deleted_at', null);
+      .from("statements")
+      .select("*", { count: "exact", head: true })
+      .eq("politician_id", politicianId)
+      .is("deleted_at", null);
 
     // Type assertion for nested party data
     const parties = data.parties as unknown as {
@@ -219,13 +199,8 @@ export class PoliticianService {
    * @returns true if politician exists, false otherwise
    */
   async verifyPoliticianExists(politicianId: string): Promise<boolean> {
-    const { data, error } = await this.supabase
-      .from('politicians')
-      .select('id')
-      .eq('id', politicianId)
-      .single();
+    const { data, error } = await this.supabase.from("politicians").select("id").eq("id", politicianId).single();
 
     return !error && !!data;
   }
 }
-

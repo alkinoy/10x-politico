@@ -3,8 +3,8 @@
  * Handles business logic for party-related operations
  */
 
-import { getSupabaseClient } from '@/db/client';
-import type { PartyDTO, PartiesQueryParams, ListResponse } from '@/types';
+import { getSupabaseClient } from "@/db/client";
+import type { PartyDTO, PartiesQueryParams, ListResponse } from "@/types";
 
 export class PartyService {
   private supabase;
@@ -21,13 +21,13 @@ export class PartyService {
    * @returns List response with party data
    */
   async getAllParties(queryParams: PartiesQueryParams): Promise<ListResponse<PartyDTO>> {
-    const { sort = 'name', order = 'asc' } = queryParams;
+    const { sort = "name", order = "asc" } = queryParams;
 
     // Build query
-    let query = this.supabase.from('parties').select('*');
+    let query = this.supabase.from("parties").select("*");
 
     // Apply sorting
-    query = query.order(sort, { ascending: order === 'asc' });
+    query = query.order(sort, { ascending: order === "asc" });
 
     const { data, error, count } = await query;
 
@@ -48,15 +48,11 @@ export class PartyService {
    * @returns Party data or null if not found
    */
   async getPartyById(partyId: string): Promise<PartyDTO | null> {
-    const { data, error } = await this.supabase
-      .from('parties')
-      .select('*')
-      .eq('id', partyId)
-      .single();
+    const { data, error } = await this.supabase.from("parties").select("*").eq("id", partyId).single();
 
     if (error) {
       // Handle "not found" vs other errors
-      if (error.code === 'PGRST116') {
+      if (error.code === "PGRST116") {
         // PostgreSQL not found error
         return null;
       }
@@ -73,13 +69,8 @@ export class PartyService {
    * @returns true if party exists, false otherwise
    */
   async verifyPartyExists(partyId: string): Promise<boolean> {
-    const { data, error } = await this.supabase
-      .from('parties')
-      .select('id')
-      .eq('id', partyId)
-      .single();
+    const { data, error } = await this.supabase.from("parties").select("id").eq("id", partyId).single();
 
     return !error && !!data;
   }
 }
-

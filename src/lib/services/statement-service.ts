@@ -3,7 +3,7 @@
  * Handles business logic for statement-related operations
  */
 
-import { getSupabaseClient } from '@/db/client';
+import { getSupabaseClient } from "@/db/client";
 import type {
   StatementDetailDTO,
   StatementDTO,
@@ -13,7 +13,7 @@ import type {
   StatementsQueryParams,
   CreateStatementCommand,
   UpdateStatementCommand,
-} from '@/types';
+} from "@/types";
 
 export class StatementService {
   private supabase;
@@ -37,27 +37,21 @@ export class StatementService {
     queryParams: PoliticianTimelineQueryParams,
     authenticatedUserId: string | null
   ): Promise<PaginatedResponse<StatementDetailDTO>> {
-    const {
-      page = 1,
-      limit = 50,
-      time_range = 'all',
-      sort_by = 'created_at',
-      order = 'desc',
-    } = queryParams;
+    const { page = 1, limit = 50, time_range = "all", sort_by = "created_at", order = "desc" } = queryParams;
 
     // Calculate time range filter
     const timeFilter = this.getTimeRangeFilter(time_range);
 
     // Build count query for pagination
     let countQuery = this.supabase
-      .from('statements')
-      .select('*', { count: 'exact', head: true })
-      .eq('politician_id', politicianId)
-      .is('deleted_at', null);
+      .from("statements")
+      .select("*", { count: "exact", head: true })
+      .eq("politician_id", politicianId)
+      .is("deleted_at", null);
 
     // Apply time filter to count query if specified
     if (timeFilter) {
-      countQuery = countQuery.gte('created_at', timeFilter.toISOString());
+      countQuery = countQuery.gte("created_at", timeFilter.toISOString());
     }
 
     const { count, error: countError } = await countQuery;
@@ -71,7 +65,7 @@ export class StatementService {
 
     // Build main data query with joins
     let dataQuery = this.supabase
-      .from('statements')
+      .from("statements")
       .select(
         `
         id,
@@ -98,12 +92,12 @@ export class StatementService {
         )
       `
       )
-      .eq('politician_id', politicianId)
-      .is('deleted_at', null);
+      .eq("politician_id", politicianId)
+      .is("deleted_at", null);
 
     // Apply time filter to data query if specified
     if (timeFilter) {
-      dataQuery = dataQuery.gte('created_at', timeFilter.toISOString());
+      dataQuery = dataQuery.gte("created_at", timeFilter.toISOString());
     }
 
     // Calculate pagination offset
@@ -111,7 +105,7 @@ export class StatementService {
 
     // Apply sorting and pagination
     const { data, error } = await dataQuery
-      .order(sort_by, { ascending: order === 'asc' })
+      .order(sort_by, { ascending: order === "asc" })
       .range(offset, offset + limit - 1);
 
     if (error) {
@@ -186,13 +180,13 @@ export class StatementService {
     const now = new Date();
 
     switch (timeRange) {
-      case '7d':
+      case "7d":
         return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      case '30d':
+      case "30d":
         return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      case '365d':
+      case "365d":
         return new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-      case 'all':
+      case "all":
       default:
         return null;
     }
@@ -239,11 +233,7 @@ export class StatementService {
    * @returns true if politician exists, false otherwise
    */
   async verifyPoliticianExists(politicianId: string): Promise<boolean> {
-    const { data, error } = await this.supabase
-      .from('politicians')
-      .select('id')
-      .eq('id', politicianId)
-      .single();
+    const { data, error } = await this.supabase.from("politicians").select("id").eq("id", politicianId).single();
 
     return !error && !!data;
   }
@@ -253,30 +243,20 @@ export class StatementService {
    * Public endpoint with optional politician filtering
    *
    * @param queryParams - Query parameters for filtering, sorting, and pagination
-   * @param authenticatedUserId - ID of authenticated user (optional, for permission calculation)
    * @returns Paginated response with statement details
    */
-  async getAllStatements(
-    queryParams: StatementsQueryParams,
-    authenticatedUserId: string | null
-  ): Promise<PaginatedResponse<StatementDTO>> {
-    const {
-      page = 1,
-      limit = 50,
-      politician_id,
-      sort_by = 'created_at',
-      order = 'desc',
-    } = queryParams;
+  async getAllStatements(queryParams: StatementsQueryParams): Promise<PaginatedResponse<StatementDTO>> {
+    const { page = 1, limit = 50, politician_id, sort_by = "created_at", order = "desc" } = queryParams;
 
     // Build count query for pagination
     let countQuery = this.supabase
-      .from('statements')
-      .select('*', { count: 'exact', head: true })
-      .is('deleted_at', null);
+      .from("statements")
+      .select("*", { count: "exact", head: true })
+      .is("deleted_at", null);
 
     // Apply politician filter if specified
     if (politician_id) {
-      countQuery = countQuery.eq('politician_id', politician_id);
+      countQuery = countQuery.eq("politician_id", politician_id);
     }
 
     const { count, error: countError } = await countQuery;
@@ -290,7 +270,7 @@ export class StatementService {
 
     // Build main data query with joins
     let dataQuery = this.supabase
-      .from('statements')
+      .from("statements")
       .select(
         `
         id,
@@ -317,11 +297,11 @@ export class StatementService {
         )
       `
       )
-      .is('deleted_at', null);
+      .is("deleted_at", null);
 
     // Apply politician filter if specified
     if (politician_id) {
-      dataQuery = dataQuery.eq('politician_id', politician_id);
+      dataQuery = dataQuery.eq("politician_id", politician_id);
     }
 
     // Calculate pagination offset
@@ -329,7 +309,7 @@ export class StatementService {
 
     // Apply sorting and pagination
     const { data, error } = await dataQuery
-      .order(sort_by, { ascending: order === 'asc' })
+      .order(sort_by, { ascending: order === "asc" })
       .range(offset, offset + limit - 1);
 
     if (error) {
@@ -400,12 +380,9 @@ export class StatementService {
    * @param authenticatedUserId - ID of authenticated user (for permission calculation)
    * @returns Statement detail with permission flags or null if not found
    */
-  async getStatementById(
-    statementId: string,
-    authenticatedUserId: string | null
-  ): Promise<StatementDetailDTO | null> {
+  async getStatementById(statementId: string, authenticatedUserId: string | null): Promise<StatementDetailDTO | null> {
     const { data, error } = await this.supabase
-      .from('statements')
+      .from("statements")
       .select(
         `
         id,
@@ -433,8 +410,8 @@ export class StatementService {
         )
       `
       )
-      .eq('id', statementId)
-      .is('deleted_at', null)
+      .eq("id", statementId)
+      .is("deleted_at", null)
       .single();
 
     if (error || !data) {
@@ -501,12 +478,12 @@ export class StatementService {
     // Verify politician exists
     const politicianExists = await this.verifyPoliticianExists(command.politician_id);
     if (!politicianExists) {
-      throw new Error('Politician not found');
+      throw new Error("Politician not found");
     }
 
     // Insert statement
     const { data, error } = await this.supabase
-      .from('statements')
+      .from("statements")
       .insert({
         politician_id: command.politician_id,
         statement_text: command.statement_text,
@@ -517,7 +494,7 @@ export class StatementService {
       .single();
 
     if (error || !data) {
-      throw new Error(`Failed to create statement: ${error?.message || 'Unknown error'}`);
+      throw new Error(`Failed to create statement: ${error?.message || "Unknown error"}`);
     }
 
     // Fetch the complete statement with joins
@@ -541,40 +518,40 @@ export class StatementService {
   ): Promise<StatementDetailDTO> {
     // Fetch existing statement
     const { data: existingStatement, error: fetchError } = await this.supabase
-      .from('statements')
-      .select('id, created_by_user_id, created_at, deleted_at')
-      .eq('id', statementId)
+      .from("statements")
+      .select("id, created_by_user_id, created_at, deleted_at")
+      .eq("id", statementId)
       .single();
 
     if (fetchError || !existingStatement) {
-      throw new Error('Statement not found');
+      throw new Error("Statement not found");
     }
 
     // Check if statement is deleted
     if (existingStatement.deleted_at) {
-      throw new Error('Statement has been deleted');
+      throw new Error("Statement has been deleted");
     }
 
     // Check ownership
     if (existingStatement.created_by_user_id !== authenticatedUserId) {
-      throw new Error('You do not own this statement');
+      throw new Error("You do not own this statement");
     }
 
     // Check grace period (15 minutes)
     const gracePeriodMs = 15 * 60 * 1000;
     const timeSinceCreation = Date.now() - new Date(existingStatement.created_at).getTime();
-    
+
     if (timeSinceCreation > gracePeriodMs) {
-      throw new Error('Grace period (15 minutes) has expired');
+      throw new Error("Grace period (15 minutes) has expired");
     }
 
     // Build update object (only include fields that are provided)
     const updates: Record<string, unknown> = {};
-    
+
     if (command.statement_text !== undefined) {
       updates.statement_text = command.statement_text;
     }
-    
+
     if (command.statement_timestamp !== undefined) {
       updates.statement_timestamp = command.statement_timestamp;
     }
@@ -583,16 +560,13 @@ export class StatementService {
     if (Object.keys(updates).length === 0) {
       const currentStatement = await this.getStatementById(statementId, authenticatedUserId);
       if (!currentStatement) {
-        throw new Error('Statement not found');
+        throw new Error("Statement not found");
       }
       return currentStatement;
     }
 
     // Update the statement
-    const { error: updateError } = await this.supabase
-      .from('statements')
-      .update(updates)
-      .eq('id', statementId);
+    const { error: updateError } = await this.supabase.from("statements").update(updates).eq("id", statementId);
 
     if (updateError) {
       throw new Error(`Failed to update statement: ${updateError.message}`);
@@ -600,9 +574,9 @@ export class StatementService {
 
     // Fetch and return the updated statement
     const updatedStatement = await this.getStatementById(statementId, authenticatedUserId);
-    
+
     if (!updatedStatement) {
-      throw new Error('Failed to fetch updated statement');
+      throw new Error("Failed to fetch updated statement");
     }
 
     return updatedStatement;
@@ -617,46 +591,43 @@ export class StatementService {
    * @returns Deleted statement info with deletion timestamp
    * @throws Error if statement not found, not owned, already deleted, or grace period expired
    */
-  async deleteStatement(
-    statementId: string,
-    authenticatedUserId: string
-  ): Promise<DeletedStatementDTO> {
+  async deleteStatement(statementId: string, authenticatedUserId: string): Promise<DeletedStatementDTO> {
     // Fetch existing statement
     const { data: existingStatement, error: fetchError } = await this.supabase
-      .from('statements')
-      .select('id, created_by_user_id, created_at, deleted_at')
-      .eq('id', statementId)
+      .from("statements")
+      .select("id, created_by_user_id, created_at, deleted_at")
+      .eq("id", statementId)
       .single();
 
     if (fetchError || !existingStatement) {
-      throw new Error('Statement not found');
+      throw new Error("Statement not found");
     }
 
     // Check if already deleted
     if (existingStatement.deleted_at) {
-      throw new Error('Statement has already been deleted');
+      throw new Error("Statement has already been deleted");
     }
 
     // Check ownership
     if (existingStatement.created_by_user_id !== authenticatedUserId) {
-      throw new Error('You do not own this statement');
+      throw new Error("You do not own this statement");
     }
 
     // Check grace period (15 minutes)
     const gracePeriodMs = 15 * 60 * 1000;
     const timeSinceCreation = Date.now() - new Date(existingStatement.created_at).getTime();
-    
+
     if (timeSinceCreation > gracePeriodMs) {
-      throw new Error('Grace period (15 minutes) has expired');
+      throw new Error("Grace period (15 minutes) has expired");
     }
 
     // Soft delete by setting deleted_at timestamp
     const deletedAt = new Date().toISOString();
-    
+
     const { error: deleteError } = await this.supabase
-      .from('statements')
+      .from("statements")
       .update({ deleted_at: deletedAt })
-      .eq('id', statementId);
+      .eq("id", statementId);
 
     if (deleteError) {
       throw new Error(`Failed to delete statement: ${deleteError.message}`);
@@ -668,4 +639,3 @@ export class StatementService {
     };
   }
 }
-
