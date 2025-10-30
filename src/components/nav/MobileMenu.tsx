@@ -25,12 +25,7 @@ function isLinkActive(href: string, current: string): boolean {
   return current.startsWith(href);
 }
 
-export default function MobileMenu({
-  isAuthenticated,
-  userName,
-  currentPath,
-  isLoading = false,
-}: MobileMenuProps) {
+export default function MobileMenu({ isAuthenticated, userName, currentPath, isLoading = false }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
@@ -76,11 +71,7 @@ export default function MobileMenu({
             className="h-6 w-6"
             aria-hidden="true"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 18L18 6M6 6l12 12"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         ) : (
           <svg
@@ -92,22 +83,14 @@ export default function MobileMenu({
             className="h-6 w-6"
             aria-hidden="true"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
         )}
       </button>
 
       {/* Backdrop */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 transition-opacity"
-          onClick={closeMenu}
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 z-40 bg-black/50 transition-opacity" onClick={closeMenu} aria-hidden="true" />
       )}
 
       {/* Mobile Menu Drawer */}
@@ -135,11 +118,7 @@ export default function MobileMenu({
                 className="h-6 w-6"
                 aria-hidden="true"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
@@ -243,4 +222,3 @@ export default function MobileMenu({
     </>
   );
 }
-

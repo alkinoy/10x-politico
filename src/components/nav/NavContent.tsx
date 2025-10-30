@@ -60,10 +60,7 @@ export default function NavContent({ currentPath }: NavContentProps) {
     <div className="container mx-auto flex h-16 items-center justify-between px-4">
       {/* Logo/Brand */}
       <div className="flex items-center">
-        <a
-          href="/"
-          className="text-xl font-bold text-foreground transition-colors hover:text-primary"
-        >
+        <a href="/" className="text-xl font-bold text-foreground transition-colors hover:text-primary">
           SpeechKarma
         </a>
       </div>
@@ -93,9 +90,7 @@ export default function NavContent({ currentPath }: NavContentProps) {
           <a
             href="/statements/new"
             className={`text-sm font-medium transition-colors hover:text-foreground ${
-              isLinkActive("/statements/new", currentPath)
-                ? "text-foreground"
-                : "text-muted-foreground"
+              isLinkActive("/statements/new", currentPath) ? "text-foreground" : "text-muted-foreground"
             }`}
             aria-current={isLinkActive("/statements/new", currentPath) ? "page" : undefined}
           >
@@ -150,4 +145,3 @@ export default function NavContent({ currentPath }: NavContentProps) {
     </div>
   );
 }
-

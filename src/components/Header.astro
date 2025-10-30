@@ -17,4 +17,3 @@ const currentPath = new URL(Astro.request.url).pathname;
 <header class="sticky top-0 z-50 border-b bg-background">
   <NavContent client:load currentPath={currentPath} />
 </header>
-

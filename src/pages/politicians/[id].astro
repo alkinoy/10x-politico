@@ -51,7 +51,7 @@ let politicianError: string | null = null;
 try {
   const politicianService = new PoliticianService();
   politician = await politicianService.getPoliticianById(id);
-  
+
   if (!politician) {
     // Politician not found - will render 404 state
     politicianError = "POLITICIAN_NOT_FOUND";
