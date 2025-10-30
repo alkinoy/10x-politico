@@ -1,22 +1,18 @@
 /**
  * Profile Service
- * 
+ *
  * Handles business logic for user profile operations including:
  * - Fetching authenticated user's profile
  * - Updating user profile
  * - Fetching public profiles
  */
 
-import { getSupabaseClient } from '../../db/client';
-import type { 
-  ProfileDTO, 
-  PublicProfileDTO, 
-  UpdateProfileCommand 
-} from '../../types';
+import { getSupabaseClient } from "../../db/client";
+import type { ProfileDTO, PublicProfileDTO, UpdateProfileCommand } from "../../types";
 
 /**
  * Get the authenticated user's full profile
- * 
+ *
  * @param userId - The authenticated user's ID
  * @returns The user's complete profile or null if not found
  */
@@ -24,9 +20,9 @@ export async function getAuthenticatedProfile(userId: string): Promise<ProfileDT
   const supabase = getSupabaseClient();
 
   const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('id, display_name, is_admin, created_at, updated_at')
-    .eq('id', userId)
+    .from("profiles")
+    .select("id, display_name, is_admin, created_at, updated_at")
+    .eq("id", userId)
     .single();
 
   if (error || !profile) {
@@ -48,34 +44,31 @@ export async function getAuthenticatedProfile(userId: string): Promise<ProfileDT
 
 /**
  * Update the authenticated user's profile
- * 
+ *
  * @param userId - The authenticated user's ID
  * @param command - The update command with fields to update
  * @returns The updated profile or null if not found
  * @throws Error if validation fails
  */
-export async function updateProfile(
-  userId: string,
-  command: UpdateProfileCommand
-): Promise<ProfileDTO | null> {
+export async function updateProfile(userId: string, command: UpdateProfileCommand): Promise<ProfileDTO | null> {
   const supabase = getSupabaseClient();
 
   // Validate display_name if provided
   if (command.display_name !== undefined) {
     const trimmed = command.display_name.trim();
-    
+
     if (trimmed.length === 0) {
-      throw new Error('Display name cannot be empty');
+      throw new Error("Display name cannot be empty");
     }
-    
+
     if (trimmed.length > 100) {
-      throw new Error('Display name cannot exceed 100 characters');
+      throw new Error("Display name cannot exceed 100 characters");
     }
   }
 
   // Build update object (only include provided fields)
   const updates: { display_name?: string } = {};
-  
+
   if (command.display_name !== undefined) {
     updates.display_name = command.display_name.trim();
   }
@@ -87,14 +80,14 @@ export async function updateProfile(
 
   // Update the profile
   const { data: updatedProfile, error } = await supabase
-    .from('profiles')
+    .from("profiles")
     .update(updates)
-    .eq('id', userId)
-    .select('id, display_name, is_admin, created_at, updated_at')
+    .eq("id", userId)
+    .select("id, display_name, is_admin, created_at, updated_at")
     .single();
 
   if (error || !updatedProfile) {
-    throw new Error('Failed to update profile');
+    throw new Error("Failed to update profile");
   }
 
   // Get email from auth.users
@@ -112,7 +105,7 @@ export async function updateProfile(
 
 /**
  * Get a public profile by user ID
- * 
+ *
  * @param userId - The user ID to fetch
  * @returns The public profile or null if not found
  */
@@ -120,9 +113,9 @@ export async function getPublicProfile(userId: string): Promise<PublicProfileDTO
   const supabase = getSupabaseClient();
 
   const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('id, display_name, created_at')
-    .eq('id', userId)
+    .from("profiles")
+    .select("id, display_name, created_at")
+    .eq("id", userId)
     .single();
 
   if (error || !profile) {
@@ -138,19 +131,14 @@ export async function getPublicProfile(userId: string): Promise<PublicProfileDTO
 
 /**
  * Verify that a profile exists
- * 
+ *
  * @param userId - The user ID to check
  * @returns true if profile exists, false otherwise
  */
 export async function verifyProfileExists(userId: string): Promise<boolean> {
   const supabase = getSupabaseClient();
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('id', userId)
-    .single();
+  const { data, error } = await supabase.from("profiles").select("id").eq("id", userId).single();
 
   return !error && !!data;
 }
-

@@ -9,10 +9,10 @@
  * @returns true if valid UUID, false otherwise
  */
 export function isValidUUID(uuid: string): boolean {
-  if (!uuid || typeof uuid !== 'string') {
+  if (!uuid || typeof uuid !== "string") {
     return false;
   }
-  
+
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
 }
@@ -24,13 +24,16 @@ export function isValidUUID(uuid: string): boolean {
  * @param limit - Requested items per page
  * @returns Validated pagination parameters
  */
-export function validatePaginationParams(page?: number, limit?: number): {
+export function validatePaginationParams(
+  page?: number,
+  limit?: number
+): {
   page: number;
   limit: number;
 } {
   const validatedPage = Math.max(1, page || 1);
   const validatedLimit = Math.min(100, Math.max(1, limit || 50));
-  
+
   return { page: validatedPage, limit: validatedLimit };
 }
 
@@ -39,11 +42,11 @@ export function validatePaginationParams(page?: number, limit?: number): {
  * @param timeRange - Time range string to validate
  * @returns Valid time range or 'all' as default
  */
-export function validateTimeRange(timeRange?: string): '7d' | '30d' | '365d' | 'all' {
-  if (!timeRange || !['7d', '30d', '365d', 'all'].includes(timeRange)) {
-    return 'all';
+export function validateTimeRange(timeRange?: string): "7d" | "30d" | "365d" | "all" {
+  if (!timeRange || !["7d", "30d", "365d", "all"].includes(timeRange)) {
+    return "all";
   }
-  return timeRange as '7d' | '30d' | '365d' | 'all';
+  return timeRange as "7d" | "30d" | "365d" | "all";
 }
 
 /**
@@ -69,11 +72,11 @@ export function validateSortField<T extends string>(
  * @param order - Sort order to validate
  * @returns Valid sort order ('asc' or 'desc')
  */
-export function validateSortOrder(order?: string): 'asc' | 'desc' {
-  if (!order || !['asc', 'desc'].includes(order)) {
-    return 'desc';
+export function validateSortOrder(order?: string): "asc" | "desc" {
+  if (!order || !["asc", "desc"].includes(order)) {
+    return "desc";
   }
-  return order as 'asc' | 'desc';
+  return order as "asc" | "desc";
 }
 
 /**
@@ -82,10 +85,10 @@ export function validateSortOrder(order?: string): 'asc' | 'desc' {
  * @returns true if valid ISO 8601 date, false otherwise
  */
 export function isValidISODate(dateString: string): boolean {
-  if (!dateString || typeof dateString !== 'string') {
+  if (!dateString || typeof dateString !== "string") {
     return false;
   }
-  
+
   const date = new Date(dateString);
   return !isNaN(date.getTime()) && date.toISOString() === dateString;
 }
@@ -97,14 +100,13 @@ export function isValidISODate(dateString: string): boolean {
  * @returns true if valid, false otherwise
  */
 export function isValidString(value: string, maxLength?: number): boolean {
-  if (!value || typeof value !== 'string' || value.trim().length === 0) {
+  if (!value || typeof value !== "string" || value.trim().length === 0) {
     return false;
   }
-  
+
   if (maxLength && value.length > maxLength) {
     return false;
   }
-  
+
   return true;
 }
-
