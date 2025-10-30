@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "node --env-file=.env ./node_modules/.bin/astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
@@ -47,6 +47,7 @@
     "@typescript-eslint/parser": "8.28.0",
     "@vitejs/plugin-react": "^5.1.0",
     "@vitest/ui": "^4.0.5",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "10.1.1",
     "eslint-import-resolver-typescript": "4.2.5",

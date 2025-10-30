@@ -4,6 +4,7 @@
  */
 
 import { getSupabaseClient } from "@/db/client";
+import { chatCompletion } from "./openrouter-service";
 import type {
   StatementDetailDTO,
   StatementDTO,
@@ -13,6 +14,7 @@ import type {
   StatementsQueryParams,
   CreateStatementCommand,
   UpdateStatementCommand,
+  ResponseFormat,
 } from "@/types";
 
 export class StatementService {
@@ -21,6 +23,88 @@ export class StatementService {
   constructor() {
     // Use service role key for server-side operations
     this.supabase = getSupabaseClient();
+  }
+
+  /**
+   * Check if AI summary feature is enabled
+   * @returns true if USE_AI_SUMMARY is set to 'true'
+   */
+  private isAiSummaryEnabled(): boolean {
+    // Use process.env directly for Node adapter
+    const useAiSummary = process.env.USE_AI_SUMMARY;
+    console.log("🔍 AI Summary Feature Check:", {
+      USE_AI_SUMMARY: useAiSummary,
+      enabled: useAiSummary === "true",
+    });
+    return useAiSummary === "true";
+  }
+
+  /**
+   * Generate AI summary for a statement using OpenRouter
+   * @param statementText - The original statement text
+   * @returns AI-generated summary or null if generation fails
+   */
+  private async generateAiSummary(statementText: string): Promise<string | null> {
+    // Check if AI summary is enabled
+    if (!this.isAiSummaryEnabled()) {
+      console.log("⚠️ AI Summary disabled - skipping generation");
+      return null;
+    }
+
+    console.log("🤖 Generating AI summary for statement...");
+
+    try {
+      // Define JSON schema for the summary response
+      const responseFormat: ResponseFormat = {
+        type: "json_schema",
+        json_schema: {
+          name: "statement_summary",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              summary: {
+                type: "string",
+                description: "A concise summary of the political statement in 1-2 sentences",
+              },
+            },
+            required: ["summary"],
+            additionalProperties: false,
+          },
+        },
+      };
+
+      // Generate summary using OpenRouter
+      console.log("📡 Calling OpenRouter API...");
+      const result = await chatCompletion<{ summary: string }>({
+        model: "openai/gpt-4o-mini",
+        systemMessage:
+          "You are a political analyst. Create very concise, objective summaries of political statements. Keep summaries to 1-2 sentences maximum. Focus on the key message or claim.",
+        userMessage: `Summarize this political statement concisely:\n\n"${statementText}"`,
+        responseFormat,
+        parameters: {
+          temperature: 0.3, // Low temperature for consistent, factual summaries
+          max_tokens: 150,
+        },
+      });
+
+      console.log("✅ AI Summary generated:", result.content.summary);
+      return result.content.summary;
+    } catch (error) {
+      // Log error but don't fail the statement creation
+      console.error("❌ Failed to generate AI summary:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Append AI summary to statement text with clear separator
+   * @param statementText - Original statement text
+   * @param summary - AI-generated summary
+   * @returns Statement text with appended summary
+   */
+  private appendSummaryToStatement(statementText: string, summary: string): string {
+    return `${statementText}\n\n---\n\n📝 AI Summary: ${summary}`;
   }
 
   /**
@@ -465,7 +549,7 @@ export class StatementService {
 
   /**
    * Creates a new statement
-   * Validates input, checks politician exists, and inserts into database
+   * Validates input, checks politician exists, optionally generates AI summary, and inserts into database
    *
    * @param command - Statement creation data
    * @param authenticatedUserId - ID of authenticated user (statement creator)
@@ -481,12 +565,25 @@ export class StatementService {
       throw new Error("Politician not found");
     }
 
-    // Insert statement
+    // Generate AI summary if enabled
+    console.log("📝 Creating statement - checking for AI summary...");
+    let finalStatementText = command.statement_text;
+    const aiSummary = await this.generateAiSummary(command.statement_text);
+
+    // Append AI summary if generated successfully
+    if (aiSummary) {
+      console.log("✨ Appending AI summary to statement");
+      finalStatementText = this.appendSummaryToStatement(command.statement_text, aiSummary);
+    } else {
+      console.log("ℹ️ No AI summary generated - using original text only");
+    }
+
+    // Insert statement with potentially modified text
     const { data, error } = await this.supabase
       .from("statements")
       .insert({
         politician_id: command.politician_id,
-        statement_text: command.statement_text,
+        statement_text: finalStatementText,
         statement_timestamp: command.statement_timestamp,
         created_by_user_id: authenticatedUserId,
       })
