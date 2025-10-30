@@ -1,0 +1,20 @@
+---
+/**
+ * Header Component
+ *
+ * Global navigation header displayed on all pages.
+ * Provides primary navigation links and authentication controls.
+ * Adapts based on authentication state (showing/hiding appropriate links).
+ * Responsive: desktop horizontal nav, mobile hamburger menu.
+ */
+
+import NavContent from "./nav/NavContent";
+
+// Get current path for active link styling
+const currentPath = new URL(Astro.request.url).pathname;
+---
+
+<header class="sticky top-0 z-50 border-b bg-background">
+  <NavContent client:load currentPath={currentPath} />
+</header>
+
