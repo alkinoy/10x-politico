@@ -1,0 +1,30 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import AuthenticationContainer from "@/components/AuthenticationContainer";
+import { getSupabaseClientAnon } from "@/db/client";
+
+// Check if user is already authenticated
+const token = Astro.cookies.get("sb-access-token")?.value;
+if (token) {
+  const supabase = getSupabaseClientAnon();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
+
+  if (user && !error) {
+    // User is authenticated, redirect to home or returnUrl
+    const returnUrl = Astro.url.searchParams.get("returnUrl") || "/";
+    return Astro.redirect(returnUrl);
+  }
+}
+
+// Parse URL hash for initial tab state (client-side, will be handled by React)
+const returnUrl = Astro.url.searchParams.get("returnUrl");
+---
+
+<Layout title="Sign In - SpeechKarma">
+  <main class="min-h-screen flex items-center justify-center bg-neutral-50 px-4 py-8 sm:py-12">
+    <AuthenticationContainer client:load returnUrl={returnUrl} />
+  </main>
+</Layout>

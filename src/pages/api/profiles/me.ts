@@ -17,9 +17,10 @@ import type { UpdateProfileCommand } from "../../../types";
 export const GET: APIRoute = async ({ request }) => {
   try {
     // Authenticate user
-    const authResult = await getAuthenticatedUser(request);
+    const authHeader = request.headers.get("Authorization");
+    const userId = await getAuthenticatedUser(authHeader);
 
-    if (!authResult.success || !authResult.user) {
+    if (!userId) {
       return new Response(
         JSON.stringify({
           error: {
@@ -35,7 +36,7 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     // Fetch profile
-    const profile = await getAuthenticatedProfile(authResult.user.id);
+    const profile = await getAuthenticatedProfile(userId);
 
     if (!profile) {
       return new Response(
@@ -80,9 +81,10 @@ export const GET: APIRoute = async ({ request }) => {
 export const PATCH: APIRoute = async ({ request }) => {
   try {
     // Authenticate user
-    const authResult = await getAuthenticatedUser(request);
+    const authHeader = request.headers.get("Authorization");
+    const userId = await getAuthenticatedUser(authHeader);
 
-    if (!authResult.success || !authResult.user) {
+    if (!userId) {
       return new Response(
         JSON.stringify({
           error: {
@@ -119,7 +121,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     // Update profile
     try {
-      const updatedProfile = await updateProfile(authResult.user.id, command);
+      const updatedProfile = await updateProfile(userId, command);
 
       if (!updatedProfile) {
         return new Response(
