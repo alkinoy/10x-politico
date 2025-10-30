@@ -1,0 +1,27 @@
+---
+/**
+ * User Profile Page
+ * Path: /profile
+ *
+ * Displays authenticated user's profile information, allows editing display name,
+ * shows user's submitted statements, and provides sign out functionality.
+ *
+ * Authentication Required: Yes
+ */
+
+import Layout from "@/layouts/Layout.astro";
+import UserProfile from "@/components/UserProfile";
+
+// This page requires authentication
+// For now, we'll handle auth client-side via API calls
+// In production, you might want to add server-side middleware to check auth
+---
+
+<Layout title="My Profile - SpeechKarma">
+  <main class="min-h-screen bg-background">
+    <div class="container mx-auto max-w-4xl px-4 py-8">
+      <h1 class="mb-6 text-3xl font-bold">My Profile</h1>
+      <UserProfile client:load />
+    </div>
+  </main>
+</Layout>

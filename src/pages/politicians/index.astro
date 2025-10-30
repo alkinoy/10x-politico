@@ -1,0 +1,87 @@
+---
+/**
+ * Politicians Directory Page
+ *
+ * Main directory listing of all politicians with search and pagination.
+ * Public view accessible to all users.
+ *
+ * Route: /politicians
+ * Authentication: Not required (public view)
+ */
+
+import Layout from "@/layouts/Layout.astro";
+import PoliticiansDirectory from "@/components/PoliticiansDirectory";
+import type { PaginatedResponse, PoliticianDTO } from "@/types";
+
+// Extract query parameters for search and pagination
+const url = new URL(Astro.request.url);
+const searchParam = url.searchParams.get("search");
+const pageParam = url.searchParams.get("page");
+
+// Validate and sanitize search parameter
+const searchQuery = searchParam?.trim() || "";
+
+// Validate and sanitize page parameter
+const page = pageParam ? Math.max(1, parseInt(pageParam, 10)) : 1;
+const limit = 50; // Default politicians per page
+
+// Build API query parameters
+const params = new URLSearchParams({
+  page: page.toString(),
+  limit: limit.toString(),
+  sort: "last_name",
+  order: "asc",
+});
+
+if (searchQuery) {
+  params.append("search", searchQuery);
+}
+
+// Fetch politicians data with SSR
+let initialData: PaginatedResponse<PoliticianDTO> | null = null;
+let fetchError: string | null = null;
+
+try {
+  const response = await fetch(`${Astro.url.origin}/api/politicians?${params}`, {
+    headers: {
+      cookie: Astro.request.headers.get("cookie") || "",
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    fetchError = errorData.error?.message || "Failed to load politicians directory";
+  } else {
+    initialData = await response.json();
+  }
+} catch (error) {
+  console.error("Error fetching politicians:", error);
+  fetchError = "Network error while loading politicians directory";
+}
+
+// Fallback data if fetch fails (to prevent component crash)
+const safeInitialData: PaginatedResponse<PoliticianDTO> = initialData || {
+  data: [],
+  pagination: {
+    page: 1,
+    limit: 50,
+    total: 0,
+    total_pages: 0,
+  },
+};
+
+// Construct page title
+const pageTitle = searchQuery ? `Search: ${searchQuery} - Politicians Directory` : "Politicians Directory";
+---
+
+<Layout title={pageTitle}>
+  <main class="container mx-auto px-4 py-8 max-w-7xl">
+    <PoliticiansDirectory
+      client:load
+      initialData={safeInitialData}
+      initialPage={page}
+      initialSearchQuery={searchQuery}
+      initialError={fetchError}
+    />
+  </main>
+</Layout>

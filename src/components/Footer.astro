@@ -1,0 +1,26 @@
+---
+/**
+ * Footer Component
+ *
+ * Global footer displayed on all pages with links to legal pages
+ * and copyright information.
+ */
+---
+
+<footer class="border-t bg-background">
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
+      <!-- Copyright -->
+      <p class="text-sm text-muted-foreground">
+        &copy; {new Date().getFullYear()} SpeechKarma. All rights reserved.
+      </p>
+
+      <!-- Legal Links -->
+      <nav class="flex items-center gap-4 text-sm" aria-label="Footer navigation">
+        <a href="/terms" class="text-muted-foreground transition-colors hover:text-foreground"> Terms of Use </a>
+        <span class="text-muted-foreground" aria-hidden="true">|</span>
+        <a href="/privacy" class="text-muted-foreground transition-colors hover:text-foreground"> Privacy Policy </a>
+      </nav>
+    </div>
+  </div>
+</footer>
