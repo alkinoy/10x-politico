@@ -157,7 +157,7 @@ export default function UserStatementsSection({ userId }: UserStatementsSectionP
   if (statements.length === 0) {
     return (
       <div className="rounded-lg border bg-card p-8 text-center">
-        <p className="text-muted-foreground">You haven't submitted any statements yet.</p>
+        <p className="text-muted-foreground">You haven&apos;t submitted any statements yet.</p>
         <Button variant="default" size="sm" asChild className="mt-4">
           <a href="/statements/new">Add Your First Statement</a>
         </Button>

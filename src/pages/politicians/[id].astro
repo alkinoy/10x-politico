@@ -1,0 +1,123 @@
+---
+/**
+ * Politician Detail Page
+ *
+ * Dynamic route displaying comprehensive politician profile and statement timeline.
+ * Supports time range filtering and pagination via URL parameters.
+ *
+ * Route: /politicians/:id
+ * Authentication: Not required (public view)
+ */
+
+import Layout from "@/layouts/Layout.astro";
+import PoliticianDetail from "@/components/politician/PoliticianDetail";
+import type { PoliticianDetailDTO, PaginatedResponse, StatementDetailDTO } from "@/types";
+
+// Extract politician ID from route params
+const { id } = Astro.params;
+
+// Validate politician ID format (basic UUID validation)
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+if (!id || !uuidRegex.test(id)) {
+  return Astro.redirect("/404");
+}
+
+// Extract query parameters for filtering and pagination
+const url = new URL(Astro.request.url);
+const timeRangeParam = url.searchParams.get("time_range");
+const pageParam = url.searchParams.get("page");
+
+// Validate and sanitize time_range parameter
+const validTimeRanges = ["7d", "30d", "365d", "all"] as const;
+type TimeRange = (typeof validTimeRanges)[number];
+const timeRange: TimeRange = validTimeRanges.includes(timeRangeParam as (typeof validTimeRanges)[number])
+  ? (timeRangeParam as TimeRange)
+  : "all";
+
+// Validate and sanitize page parameter
+const page = pageParam ? Math.max(1, parseInt(pageParam, 10)) : 1;
+const limit = 50; // Default statements per page
+
+// Get current user from session for permission checks
+const session = Astro.locals.session;
+const currentUserId = session?.user?.id || null;
+
+// Fetch politician profile
+let politician: PoliticianDetailDTO | null = null;
+let politicianError: string | null = null;
+
+try {
+  const politicianResponse = await fetch(`${Astro.url.origin}/api/politicians/${id}`, {
+    headers: {
+      cookie: Astro.request.headers.get("cookie") || "",
+    },
+  });
+
+  if (politicianResponse.status === 404) {
+    // Politician not found - will render 404 state
+    politicianError = "POLITICIAN_NOT_FOUND";
+  } else if (!politicianResponse.ok) {
+    const errorData = await politicianResponse.json().catch(() => ({}));
+    politicianError = errorData.error?.message || "Failed to load politician profile";
+  } else {
+    const data = await politicianResponse.json();
+    politician = data.data;
+  }
+} catch (error) {
+  console.error("Error fetching politician:", error);
+  politicianError = "Network error while loading politician";
+}
+
+// Fetch statements timeline (only if politician was found)
+let statements: PaginatedResponse<StatementDetailDTO> | null = null;
+let statementsError: string | null = null;
+
+if (politician) {
+  try {
+    const statementsParams = new URLSearchParams({
+      time_range: timeRange,
+      page: page.toString(),
+      limit: limit.toString(),
+      sort_by: "statement_timestamp",
+      order: "desc",
+    });
+
+    const statementsResponse = await fetch(`${Astro.url.origin}/api/politicians/${id}/statements?${statementsParams}`, {
+      headers: {
+        cookie: Astro.request.headers.get("cookie") || "",
+      },
+    });
+
+    if (!statementsResponse.ok) {
+      const errorData = await statementsResponse.json().catch(() => ({}));
+      statementsError = errorData.error?.message || "Failed to load statements";
+    } else {
+      statements = await statementsResponse.json();
+    }
+  } catch (error) {
+    console.error("Error fetching statements:", error);
+    statementsError = "Network error while loading statements";
+  }
+}
+
+// Construct page title
+const pageTitle = politician
+  ? `${politician.first_name} ${politician.last_name} - Statement Timeline`
+  : "Politician Not Found";
+---
+
+<Layout title={pageTitle}>
+  <main class="container mx-auto px-4 py-8 max-w-4xl">
+    <PoliticianDetail
+      client:load
+      politicianId={id}
+      initialPolitician={politician}
+      initialStatements={statements}
+      initialTimeRange={timeRange}
+      initialPage={page}
+      currentUserId={currentUserId}
+      politicianError={politicianError}
+      statementsError={statementsError}
+    />
+  </main>
+</Layout>

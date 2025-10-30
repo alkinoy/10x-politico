@@ -15,14 +15,7 @@ interface EmailInputProps {
   disabled?: boolean;
 }
 
-export default function EmailInput({
-  id,
-  value,
-  onChange,
-  onBlur,
-  error,
-  disabled = false,
-}: EmailInputProps) {
+export default function EmailInput({ id, value, onChange, onBlur, error, disabled = false }: EmailInputProps) {
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="block text-sm font-medium text-neutral-700">

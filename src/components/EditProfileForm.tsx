@@ -6,7 +6,6 @@
  */
 
 import { useState, useCallback, useId } from "react";
-import type { ProfileDTO, UpdateProfileCommand } from "@/types";
 import { Button } from "@/components/ui/button";
 
 interface EditProfileFormProps {
