@@ -396,3 +396,131 @@ export function isSortOrder(value: unknown): value is SortOrder {
 export function isTimeRange(value: unknown): value is "7d" | "30d" | "365d" | "all" {
   return typeof value === "string" && ["7d", "30d", "365d", "all"].includes(value);
 }
+
+// ============================================================================
+// OpenRouter API Types
+// ============================================================================
+
+/**
+ * Message role in a conversation
+ */
+export type MessageRole = "system" | "user" | "assistant";
+
+/**
+ * Individual message in a conversation
+ */
+export interface ChatMessage {
+  role: MessageRole;
+  content: string;
+}
+
+/**
+ * JSON schema definition for structured responses
+ * Must conform to OpenRouter's expected format
+ */
+export interface ResponseFormat {
+  type: "json_schema";
+  json_schema: {
+    name: string;
+    strict: boolean;
+    schema: Record<string, unknown>;
+  };
+}
+
+/**
+ * Model configuration parameters
+ */
+export interface ModelParameters {
+  /** Sampling temperature (0-2). Higher = more random. Default: 1 */
+  temperature?: number;
+  /** Maximum tokens to generate. Default: model-specific */
+  max_tokens?: number;
+  /** Nucleus sampling threshold (0-1). Alternative to temperature */
+  top_p?: number;
+  /** Frequency penalty (-2 to 2). Reduces repetition */
+  frequency_penalty?: number;
+  /** Presence penalty (-2 to 2). Encourages topic diversity */
+  presence_penalty?: number;
+  /** Stop sequences to end generation */
+  stop?: string | string[];
+}
+
+/**
+ * Complete request to OpenRouter API
+ */
+export interface OpenRouterChatRequest {
+  /** Model identifier (e.g., "anthropic/claude-3.5-sonnet") */
+  model: string;
+  /** Conversation messages (system, user, assistant) */
+  messages: ChatMessage[];
+  /** Optional: Structured response format with JSON schema */
+  response_format?: ResponseFormat;
+  /** Optional: Model parameters for controlling generation */
+  temperature?: number;
+  max_tokens?: number;
+  top_p?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  stop?: string | string[];
+}
+
+/**
+ * Usage statistics from API response
+ */
+export interface OpenRouterUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
+/**
+ * Individual choice from API response
+ */
+export interface OpenRouterChoice {
+  index: number;
+  message: ChatMessage;
+  finish_reason: "stop" | "length" | "content_filter" | "tool_calls" | null;
+}
+
+/**
+ * Complete response from OpenRouter API
+ */
+export interface OpenRouterChatResponse {
+  id: string;
+  model: string;
+  created: number;
+  choices: OpenRouterChoice[];
+  usage?: OpenRouterUsage;
+}
+
+/**
+ * Simplified response for service consumers
+ */
+export interface ChatCompletionResult<T = string> {
+  /** The generated content (string or parsed JSON) */
+  content: T;
+  /** Model that generated the response */
+  model: string;
+  /** Why generation stopped */
+  finish_reason: string;
+  /** Token usage statistics (if available) */
+  usage?: OpenRouterUsage;
+  /** Full raw response for advanced use cases */
+  raw?: OpenRouterChatResponse;
+}
+
+/**
+ * Configuration for a chat completion request
+ */
+export interface ChatCompletionConfig {
+  /** Model to use (e.g., "anthropic/claude-3.5-sonnet") */
+  model: string;
+  /** System message to set behavior and context */
+  systemMessage?: string;
+  /** User message(s) - can be string or array of messages */
+  userMessage: string | ChatMessage[];
+  /** Optional: JSON schema for structured responses */
+  responseFormat?: ResponseFormat;
+  /** Optional: Model parameters */
+  parameters?: ModelParameters;
+}
