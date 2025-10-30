@@ -11,9 +11,14 @@ import {
 
 describe("validation utilities", () => {
   describe("isValidUUID", () => {
-    it("should return true for valid UUID v4", () => {
+    it("should return true for valid UUIDs (any version)", () => {
+      // UUID v4
       expect(isValidUUID("123e4567-e89b-42d3-a456-426614174000")).toBe(true);
       expect(isValidUUID("550e8400-e29b-41d4-a716-446655440000")).toBe(true);
+      // UUID v1
+      expect(isValidUUID("a0fd7826-36f7-9fe1-06fd-929920f73d1f")).toBe(true);
+      // UUID v4 (different format)
+      expect(isValidUUID("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d")).toBe(true);
     });
 
     it("should return false for invalid UUIDs", () => {
