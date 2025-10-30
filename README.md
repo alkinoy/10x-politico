@@ -115,9 +115,28 @@ The application will be available at `http://localhost:4321`
 
 ## 📜 Available Scripts
 
+### Using Makefile (Recommended)
+
+- `make pp` - Run linting and tests (pre-push check)
+- `make dev` - Start development server
+- `make build` - Build for production
+- `make preview` - Preview production build locally
+- `make test` - Run tests
+- `make test-watch` - Run tests in watch mode
+- `make test-coverage` - Run tests with coverage report
+- `make lint` - Run ESLint to check code quality
+- `make lint-fix` - Automatically fix linting issues
+- `make help` - Show all available commands
+
+### Using npm Scripts Directly
+
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build locally
+- `npm test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:ui` - Run tests with UI interface
+- `npm run test:coverage` - Run tests with coverage report
 - `npm run lint` - Run ESLint to check code quality
 - `npm run lint:fix` - Automatically fix linting issues
 - `npm run format` - Format code with Prettier
@@ -183,20 +202,44 @@ The application will be available at `http://localhost:4321`
 - Advanced moderation console
 - Complex role types (editor, verifier, curator)
 
+## 🧪 Testing
+
+This project uses **Vitest** for testing. For detailed testing documentation, see [TESTING.md](TESTING.md).
+
+### Quick Testing Commands
+
+```bash
+# Run all checks before pushing
+make pp
+
+# Run tests only
+make test
+
+# Run tests in watch mode (development)
+make test-watch
+
+# Generate coverage report
+make test-coverage
+```
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Make your changes
+4. Run pre-push checks (`make pp`)
+5. Commit your changes (`git commit -m 'Add some amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
 Please ensure your code:
 - Follows the project's coding guidelines
-- Passes all linting checks (`npm run lint`)
+- Passes all linting checks (`make lint`)
+- Passes all tests (`make test`)
 - Is properly formatted (`npm run format`)
+- Includes tests for new features
 - Includes appropriate error handling
 - Maintains accessibility standards
 

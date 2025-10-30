@@ -3,9 +3,9 @@ description:
 globs: 
 alwaysApply: true
 ---
-# AI Rules for {app-name}
+# AI Rules for SpeechKarma
 
-{project-description}
+SpeechKarma is a web application that captures and publishes public statements made by politicians. Authenticated users can submit statements (who/when/what). Anyone can browse recent statements and review each politician’s timeline to understand positions over time.
 
 ## Tech Stack
 
@@ -47,3 +47,4 @@ When modifying the directory structure, always update this section.
 - Use guard clauses to handle preconditions and invalid states early.
 - Implement proper error logging and user-friendly error messages.
 - Consider using custom error types or error factories for consistent error handling.
+- Always run lint to fix errors
