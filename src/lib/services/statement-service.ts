@@ -32,10 +32,6 @@ export class StatementService {
   private isAiSummaryEnabled(): boolean {
     // Use process.env directly for Node adapter
     const useAiSummary = process.env.USE_AI_SUMMARY;
-    console.log("🔍 AI Summary Feature Check:", {
-      USE_AI_SUMMARY: useAiSummary,
-      enabled: useAiSummary === "true",
-    });
     return useAiSummary === "true";
   }
 
@@ -47,11 +43,8 @@ export class StatementService {
   private async generateAiSummary(statementText: string): Promise<string | null> {
     // Check if AI summary is enabled
     if (!this.isAiSummaryEnabled()) {
-      console.log("⚠️ AI Summary disabled - skipping generation");
       return null;
     }
-
-    console.log("🤖 Generating AI summary for statement...");
 
     try {
       // Define JSON schema for the summary response
@@ -75,7 +68,6 @@ export class StatementService {
       };
 
       // Generate summary using OpenRouter
-      console.log("📡 Calling OpenRouter API...");
       const result = await chatCompletion<{ summary: string }>({
         model: "openai/gpt-4o-mini",
         systemMessage:
@@ -88,7 +80,6 @@ export class StatementService {
         },
       });
 
-      console.log("✅ AI Summary generated:", result.content.summary);
       return result.content.summary;
     } catch (error) {
       // Log error but don't fail the statement creation
@@ -566,16 +557,12 @@ export class StatementService {
     }
 
     // Generate AI summary if enabled
-    console.log("📝 Creating statement - checking for AI summary...");
     let finalStatementText = command.statement_text;
     const aiSummary = await this.generateAiSummary(command.statement_text);
 
     // Append AI summary if generated successfully
     if (aiSummary) {
-      console.log("✨ Appending AI summary to statement");
       finalStatementText = this.appendSummaryToStatement(command.statement_text, aiSummary);
-    } else {
-      console.log("ℹ️ No AI summary generated - using original text only");
     }
 
     // Insert statement with potentially modified text

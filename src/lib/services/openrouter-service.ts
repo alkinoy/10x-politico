@@ -35,16 +35,10 @@ const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
  */
 function getApiKey(providedKey?: string): string {
   // Try provided key first, then import.meta.env, then process.env (for Node adapter)
-  const apiKey = providedKey || 
-                 (typeof import.meta !== 'undefined' && import.meta.env?.OPENROUTER_API_KEY) || 
-                 (typeof process !== 'undefined' && process.env?.OPENROUTER_API_KEY);
-
-  console.log("🔑 Checking API Key:", {
-    "providedKey": providedKey ? "PROVIDED" : "NOT PROVIDED",
-    "import.meta.env.OPENROUTER_API_KEY": (typeof import.meta !== 'undefined' && import.meta.env?.OPENROUTER_API_KEY) ? "EXISTS" : "MISSING",
-    "process.env.OPENROUTER_API_KEY": (typeof process !== 'undefined' && process.env?.OPENROUTER_API_KEY) ? "EXISTS" : "MISSING",
-    "final apiKey": apiKey ? "EXISTS" : "MISSING",
-  });
+  const apiKey =
+    providedKey ||
+    (typeof import.meta !== "undefined" && import.meta.env?.OPENROUTER_API_KEY) ||
+    (typeof process !== "undefined" && process.env?.OPENROUTER_API_KEY);
 
   if (!apiKey) {
     throw new OpenRouterAuthError("OPENROUTER_API_KEY environment variable is not set");
@@ -290,7 +284,10 @@ function handleApiError(status: number, body: unknown, model: string): never {
  * @throws OpenRouterError for API errors
  * @throws OpenRouterNetworkError for network issues
  */
-async function makeApiRequest(request: OpenRouterChatRequest, providedApiKey?: string): Promise<OpenRouterChatResponse> {
+async function makeApiRequest(
+  request: OpenRouterChatRequest,
+  providedApiKey?: string
+): Promise<OpenRouterChatResponse> {
   const apiKey = getApiKey(providedApiKey);
 
   try {
@@ -299,9 +296,10 @@ async function makeApiRequest(request: OpenRouterChatRequest, providedApiKey?: s
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer": (typeof import.meta !== 'undefined' && import.meta.env?.SITE_URL) || 
-                        (typeof process !== 'undefined' && process.env?.SITE_URL) || 
-                        "http://localhost:4321",
+        "HTTP-Referer":
+          (typeof import.meta !== "undefined" && import.meta.env?.SITE_URL) ||
+          (typeof process !== "undefined" && process.env?.SITE_URL) ||
+          "http://localhost:4321",
         "X-Title": "SpeechKarma",
       },
       body: JSON.stringify(request),
@@ -448,7 +446,7 @@ function extractResult<T>(response: OpenRouterChatResponse, expectJson: boolean)
  * ```
  */
 export async function chatCompletion<T = string>(
-  config: ChatCompletionConfig, 
+  config: ChatCompletionConfig,
   apiKey?: string
 ): Promise<ChatCompletionResult<T>> {
   // Validate configuration
