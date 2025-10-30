@@ -14,7 +14,8 @@
 import Layout from "@/layouts/Layout.astro";
 import EditStatementForm from "@/components/statements/EditStatementForm";
 import { getSupabaseClientAnon } from "@/db/client";
-import type { StatementDetailDTO, SingleResponse, ErrorResponse } from "@/types";
+import { StatementService } from "@/lib/services/statement-service";
+import type { StatementDetailDTO } from "@/types";
 
 // Check if user is authenticated
 const token = Astro.cookies.get("sb-access-token")?.value;
@@ -43,37 +44,34 @@ let fetchError: string | null = null;
 let errorType: "not_found" | "permission_denied" | "grace_period_expired" | "generic" = "generic";
 
 try {
-  const response = await fetch(`${Astro.url.origin}/api/statements/${statementId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (response.ok) {
-    const result: SingleResponse<StatementDetailDTO> = await response.json();
-    statement = result.data;
-
-    // Check ownership
-    if (statement.created_by_user_id !== user.id) {
-      fetchError = "You don't have permission to edit this statement";
-      errorType = "permission_denied";
-      statement = null;
-    }
-    // Check if can_edit flag is true
-    else if (!statement.can_edit) {
-      fetchError = "The grace period for editing has expired (15 minutes after creation)";
-      errorType = "grace_period_expired";
-      statement = null;
-    }
-  } else if (response.status === 404) {
-    fetchError = "Statement not found";
+  if (!statementId) {
+    fetchError = "Statement ID is required";
     errorType = "not_found";
   } else {
-    const errorData: ErrorResponse = await response.json();
-    fetchError = errorData.error.message;
+    const statementService = new StatementService();
+    statement = await statementService.getStatementById(statementId, user.id);
+
+    if (!statement) {
+      fetchError = "Statement not found";
+      errorType = "not_found";
+    } else {
+      // Check ownership
+      if (statement.created_by_user_id !== user.id) {
+        fetchError = "You don't have permission to edit this statement";
+        errorType = "permission_denied";
+        statement = null;
+      }
+      // Check if can_edit flag is true
+      else if (!statement.can_edit) {
+        fetchError = "The grace period for editing has expired (15 minutes after creation)";
+        errorType = "grace_period_expired";
+        statement = null;
+      }
+    }
   }
 } catch (error) {
   fetchError = "Failed to load statement";
+  errorType = "generic";
   console.error("Error fetching statement:", error);
 }
 ---

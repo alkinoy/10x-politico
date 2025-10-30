@@ -11,6 +11,8 @@
 
 import Layout from "@/layouts/Layout.astro";
 import PoliticianDetail from "@/components/politician/PoliticianDetail";
+import { PoliticianService } from "@/lib/services/politician-service";
+import { StatementService } from "@/lib/services/statement-service";
 import type { PoliticianDetailDTO, PaginatedResponse, StatementDetailDTO } from "@/types";
 
 // Extract politician ID from route params
@@ -47,21 +49,12 @@ let politician: PoliticianDetailDTO | null = null;
 let politicianError: string | null = null;
 
 try {
-  const politicianResponse = await fetch(`${Astro.url.origin}/api/politicians/${id}`, {
-    headers: {
-      cookie: Astro.request.headers.get("cookie") || "",
-    },
-  });
-
-  if (politicianResponse.status === 404) {
+  const politicianService = new PoliticianService();
+  politician = await politicianService.getPoliticianById(id);
+  
+  if (!politician) {
     // Politician not found - will render 404 state
     politicianError = "POLITICIAN_NOT_FOUND";
-  } else if (!politicianResponse.ok) {
-    const errorData = await politicianResponse.json().catch(() => ({}));
-    politicianError = errorData.error?.message || "Failed to load politician profile";
-  } else {
-    const data = await politicianResponse.json();
-    politician = data.data;
   }
 } catch (error) {
   console.error("Error fetching politician:", error);
@@ -74,26 +67,18 @@ let statementsError: string | null = null;
 
 if (politician) {
   try {
-    const statementsParams = new URLSearchParams({
-      time_range: timeRange,
-      page: page.toString(),
-      limit: limit.toString(),
-      sort_by: "statement_timestamp",
-      order: "desc",
-    });
-
-    const statementsResponse = await fetch(`${Astro.url.origin}/api/politicians/${id}/statements?${statementsParams}`, {
-      headers: {
-        cookie: Astro.request.headers.get("cookie") || "",
+    const statementService = new StatementService();
+    statements = await statementService.getStatementsForPolitician(
+      id,
+      {
+        page,
+        limit,
+        time_range: timeRange,
+        sort_by: "statement_timestamp",
+        order: "desc",
       },
-    });
-
-    if (!statementsResponse.ok) {
-      const errorData = await statementsResponse.json().catch(() => ({}));
-      statementsError = errorData.error?.message || "Failed to load statements";
-    } else {
-      statements = await statementsResponse.json();
-    }
+      currentUserId
+    );
   } catch (error) {
     console.error("Error fetching statements:", error);
     statementsError = "Network error while loading statements";

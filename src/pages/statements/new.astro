@@ -13,7 +13,8 @@
 import Layout from "@/layouts/Layout.astro";
 import NewStatementForm from "@/components/statements/NewStatementForm";
 import { getSupabaseClientAnon } from "@/db/client";
-import type { PoliticianDTO, PaginatedResponse } from "@/types";
+import { PoliticianService } from "@/lib/services/politician-service";
+import type { PoliticianDTO } from "@/types";
 
 // Check if user is authenticated
 const token = Astro.cookies.get("sb-access-token")?.value;
@@ -41,14 +42,14 @@ let politicians: PoliticianDTO[] = [];
 let fetchError: string | null = null;
 
 try {
-  const response = await fetch(`${Astro.url.origin}/api/politicians?sort=last_name&order=asc&limit=1000`);
-
-  if (response.ok) {
-    const result: PaginatedResponse<PoliticianDTO> = await response.json();
-    politicians = result.data;
-  } else {
-    fetchError = "Failed to load politicians list";
-  }
+  const politicianService = new PoliticianService();
+  const result = await politicianService.getAllPoliticians({
+    page: 1,
+    limit: 1000,
+    sort: "last_name",
+    order: "asc",
+  });
+  politicians = result.data;
 } catch (error) {
   fetchError = "Failed to load politicians list";
   console.error("Error fetching politicians:", error);

@@ -11,6 +11,7 @@
 
 import Layout from "@/layouts/Layout.astro";
 import PoliticiansDirectory from "@/components/PoliticiansDirectory";
+import { PoliticianService } from "@/lib/services/politician-service";
 import type { PaginatedResponse, PoliticianDTO } from "@/types";
 
 // Extract query parameters for search and pagination
@@ -25,35 +26,19 @@ const searchQuery = searchParam?.trim() || "";
 const page = pageParam ? Math.max(1, parseInt(pageParam, 10)) : 1;
 const limit = 50; // Default politicians per page
 
-// Build API query parameters
-const params = new URLSearchParams({
-  page: page.toString(),
-  limit: limit.toString(),
-  sort: "last_name",
-  order: "asc",
-});
-
-if (searchQuery) {
-  params.append("search", searchQuery);
-}
-
 // Fetch politicians data with SSR
 let initialData: PaginatedResponse<PoliticianDTO> | null = null;
 let fetchError: string | null = null;
 
 try {
-  const response = await fetch(`${Astro.url.origin}/api/politicians?${params}`, {
-    headers: {
-      cookie: Astro.request.headers.get("cookie") || "",
-    },
+  const politicianService = new PoliticianService();
+  initialData = await politicianService.getAllPoliticians({
+    page,
+    limit,
+    sort: "last_name",
+    order: "asc",
+    search: searchQuery || undefined,
   });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    fetchError = errorData.error?.message || "Failed to load politicians directory";
-  } else {
-    initialData = await response.json();
-  }
 } catch (error) {
   console.error("Error fetching politicians:", error);
   fetchError = "Network error while loading politicians directory";
