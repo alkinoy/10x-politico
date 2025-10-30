@@ -16,6 +16,33 @@ The API exposes the following resources based on the database schema:
 
 ## 2. Endpoints
 
+### 2.0 System
+
+#### GET /api/health
+**Description:** Health check endpoint to verify API availability.
+
+**Query Parameters:** None
+
+**Request Payload:** None
+
+**Response Payload:**
+```json
+{
+  "status": "ok",
+  "timestamp": "timestamp"
+}
+```
+
+**Success Response:**
+- Status: 200 OK
+- Message: "Service is healthy"
+
+**Error Responses:**
+- Status: 500 Internal Server Error
+- Message: "Service unavailable"
+
+---
+
 ### 2.1 Parties
 
 #### GET /api/parties
@@ -1367,6 +1394,7 @@ Since the tech stack uses Astro 5 with API endpoints:
 1. **API Route Structure:**
    ```
    src/pages/api/
+     health.ts           → GET /api/health (health check)
      parties/
        index.ts          → GET /api/parties (list)
        [id].ts           → GET /api/parties/:id (detail)
