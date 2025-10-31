@@ -66,7 +66,7 @@ export default function DateTimePicker({ value, onChange, error, disabled = fals
         Statement Date & Time <span className="text-red-500">*</span>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div data-testid="statement-timestamp" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor={dateId} className="mb-1 block text-xs text-muted-foreground">
             Date

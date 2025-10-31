@@ -45,6 +45,7 @@ export default function PasswordInput({
         <input
           type={isVisible ? "text" : "password"}
           id={id}
+          name="password"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}

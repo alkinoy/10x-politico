@@ -32,10 +32,11 @@ export default function FormActions({
       </button>
       <button
         type="submit"
+        data-testid="submit-button"
         disabled={isSubmitting || isDisabled}
         className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
       >
-        {isSubmitting && <LoadingSpinner size="sm" />}
+        {isSubmitting && <LoadingSpinner size="sm" data-testid="loading-indicator" />}
         {isSubmitting ? "Submitting..." : submitText}
       </button>
     </div>

@@ -45,6 +45,7 @@ export default function StatementTextarea({
 
       <textarea
         id={textareaId}
+        data-testid="statement-text"
         value={value}
         onChange={handleChange}
         disabled={disabled}

@@ -10,9 +10,10 @@ import type { PartyInStatementDTO } from "@/types";
 interface PartyBadgeProps {
   party: PartyInStatementDTO;
   variant?: "default" | "compact";
+  "data-testid"?: string;
 }
 
-export default function PartyBadge({ party, variant = "default" }: PartyBadgeProps) {
+export default function PartyBadge({ party, variant = "default", "data-testid": dataTestId }: PartyBadgeProps) {
   const displayText = variant === "compact" && party.abbreviation ? party.abbreviation : party.name;
 
   // Generate background color with opacity for better contrast
@@ -25,6 +26,7 @@ export default function PartyBadge({ party, variant = "default" }: PartyBadgePro
 
   return (
     <span
+      data-testid={dataTestId}
       className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
       style={{
         backgroundColor,
