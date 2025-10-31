@@ -23,7 +23,14 @@ export default function CharacterCounter({ current, max, warningThreshold = 4800
       : "text-muted-foreground";
 
   return (
-    <span id={id} className={`text-xs ${colorClass}`} role="status" aria-live="polite" aria-atomic="true">
+    <span
+      id={id}
+      data-testid="character-counter"
+      className={`text-xs ${colorClass}`}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       {current} / {max}
     </span>
   );

@@ -136,6 +136,7 @@ export default function PoliticianSelector({
         <input
           ref={inputRef}
           id={comboboxId}
+          data-testid="politician-select"
           type="text"
           role="combobox"
           aria-expanded={isOpen}

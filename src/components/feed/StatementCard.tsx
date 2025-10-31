@@ -46,7 +46,10 @@ export default function StatementCard({ statement }: StatementCardProps) {
   };
 
   return (
-    <article className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+    <article
+      data-testid="statement-card"
+      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+    >
       {/* Politician Header */}
       <div className="mb-4">
         <PoliticianHeader politician={statement.politician} />
@@ -55,12 +58,18 @@ export default function StatementCard({ statement }: StatementCardProps) {
       {/* Statement Content */}
       <div className="mb-4">
         {/* Statement timestamp */}
-        <time dateTime={statement.statement_timestamp} className="text-sm font-medium text-gray-700 block mb-2">
+        <time
+          data-testid="statement-timestamp"
+          dateTime={statement.statement_timestamp}
+          className="text-sm font-medium text-gray-700 block mb-2"
+        >
           Statement made on {formatDate(statementDate)}
         </time>
 
         {/* Statement text */}
-        <p className="text-gray-900 leading-relaxed whitespace-pre-wrap">{statement.statement_text}</p>
+        <p data-testid="statement-text" className="text-gray-900 leading-relaxed whitespace-pre-wrap">
+          {statement.statement_text}
+        </p>
       </div>
 
       {/* Statement Metadata */}

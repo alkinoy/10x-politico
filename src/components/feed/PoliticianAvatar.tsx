@@ -13,6 +13,7 @@ interface PoliticianAvatarProps {
   lastName: string;
   imageUrl?: string | null;
   size?: "sm" | "md" | "lg" | "xl";
+  "data-testid"?: string;
 }
 
 const sizeClasses = {
@@ -22,12 +23,19 @@ const sizeClasses = {
   xl: "size-24 text-lg",
 };
 
-export default function PoliticianAvatar({ name, firstName, lastName, imageUrl, size = "md" }: PoliticianAvatarProps) {
+export default function PoliticianAvatar({
+  name,
+  firstName,
+  lastName,
+  imageUrl,
+  size = "md",
+  "data-testid": dataTestId,
+}: PoliticianAvatarProps) {
   // Generate initials from first and last name
   const initials = `${firstName[0]}${lastName[0]}`.toUpperCase();
 
   return (
-    <Avatar className={sizeClasses[size]}>
+    <Avatar className={sizeClasses[size]} data-testid={dataTestId} aria-label={name}>
       {imageUrl && <AvatarImage src={imageUrl} alt={name} />}
       <AvatarFallback className="bg-blue-600 text-white font-semibold">{initials}</AvatarFallback>
     </Avatar>

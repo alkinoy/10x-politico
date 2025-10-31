@@ -141,7 +141,11 @@ export default function RecentStatementsFeed({ initialData, initialPage, current
       </header>
 
       {/* Loading State */}
-      {feedState.isLoading && <StatementsLoadingState count={5} />}
+      {feedState.isLoading && (
+        <div data-testid="loading-skeleton">
+          <StatementsLoadingState count={5} />
+        </div>
+      )}
 
       {/* Error State */}
       {feedState.error && !feedState.isLoading && (
@@ -169,7 +173,7 @@ export default function RecentStatementsFeed({ initialData, initialPage, current
 
       {/* Pagination Controls */}
       {!feedState.isLoading && !feedState.error && feedState.pagination.total_pages > 1 && (
-        <nav aria-label="Pagination" className="flex justify-center gap-2">
+        <nav data-testid="pagination" aria-label="Pagination" className="flex justify-center gap-2">
           <button
             onClick={() => handlePageChange(feedState.currentPage - 1)}
             disabled={feedState.currentPage === 1}

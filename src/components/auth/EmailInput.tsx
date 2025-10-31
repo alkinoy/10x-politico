@@ -24,6 +24,7 @@ export default function EmailInput({ id, value, onChange, onBlur, error, disable
       <input
         type="email"
         id={id}
+        name="email"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}

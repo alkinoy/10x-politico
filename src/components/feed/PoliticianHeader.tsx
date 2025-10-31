@@ -25,6 +25,7 @@ export default function PoliticianHeader({ politician }: PoliticianHeaderProps) 
         lastName={politician.last_name}
         imageUrl={null}
         size="md"
+        data-testid="politician-avatar"
       />
 
       {/* Name and party info */}
@@ -32,6 +33,7 @@ export default function PoliticianHeader({ politician }: PoliticianHeaderProps) 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Politician name as link */}
           <a
+            data-testid="politician-link"
             href={`/politicians/${politician.id}`}
             className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
           >
@@ -39,7 +41,7 @@ export default function PoliticianHeader({ politician }: PoliticianHeaderProps) 
           </a>
 
           {/* Party badge */}
-          {politician.party && <PartyBadge party={politician.party} />}
+          {politician.party && <PartyBadge party={politician.party} data-testid="party-badge" />}
         </div>
       </div>
     </div>
