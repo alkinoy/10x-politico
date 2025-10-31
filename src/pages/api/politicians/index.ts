@@ -1,15 +1,16 @@
 /**
- * API Route: GET /api/politicians
+ * API Route: GET /api/politicians, POST /api/politicians
  *
- * Retrieves a list of politicians with optional search and filtering.
- * Supports pagination, search by name, and filtering by party.
- * Public endpoint - no authentication required.
+ * GET: Retrieves a list of politicians with optional search and filtering (public endpoint)
+ * POST: Creates a new politician (requires authentication)
  */
 
 import type { APIRoute } from "astro";
 import { PoliticianService } from "@/lib/services/politician-service";
+import { PartyService } from "@/lib/services/party-service";
+import { getAuthenticatedUser } from "@/lib/utils/auth";
 import { isValidUUID } from "@/lib/utils/validation";
-import type { PoliticiansQueryParams, ErrorResponse } from "@/types";
+import type { PoliticiansQueryParams, CreatePoliticianCommand, ErrorResponse } from "@/types";
 
 /**
  * GET handler for politicians list endpoint
@@ -190,6 +191,231 @@ export const GET: APIRoute = async ({ url }) => {
     const errorResponse: ErrorResponse = {
       error: {
         message: "Failed to retrieve politicians",
+        code: "INTERNAL_ERROR",
+      },
+    };
+
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};
+
+/**
+ * POST handler for creating a new politician
+ *
+ * Request Headers:
+ *   - Authorization: Bearer <jwt_token> (required)
+ *
+ * Request Body:
+ *   - first_name: string (required)
+ *   - last_name: string (required)
+ *   - party_id: uuid (required)
+ *   - biography: string (optional)
+ *
+ * Success Response (201):
+ *   - SingleResponse<PoliticianDTO>
+ *
+ * Error Responses:
+ *   - 400: Invalid request data
+ *   - 401: Authentication required
+ *   - 404: Party not found
+ *   - 500: Internal server error
+ */
+export const POST: APIRoute = async ({ request }) => {
+  try {
+    // ========================================================================
+    // 1. Authenticate User
+    // ========================================================================
+
+    const authHeader = request.headers.get("Authorization");
+    const authenticatedUserId = await getAuthenticatedUser(authHeader);
+
+    if (!authenticatedUserId) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Authentication required",
+          code: "AUTHENTICATION_REQUIRED",
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // ========================================================================
+    // 2. Parse Request Body
+    // ========================================================================
+
+    let body: CreatePoliticianCommand;
+    try {
+      body = await request.json();
+    } catch {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Invalid JSON in request body",
+          code: "VALIDATION_ERROR",
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // ========================================================================
+    // 3. Validate Request Body
+    // ========================================================================
+
+    // Validate first_name (required)
+    if (!body.first_name || typeof body.first_name !== "string" || body.first_name.trim().length === 0) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "First name is required",
+          code: "VALIDATION_ERROR",
+          details: { field: "first_name" },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate first_name length
+    if (body.first_name.length > 100) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "First name cannot exceed 100 characters",
+          code: "VALIDATION_ERROR",
+          details: { field: "first_name", maxLength: 100 },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate last_name (required)
+    if (!body.last_name || typeof body.last_name !== "string" || body.last_name.trim().length === 0) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Last name is required",
+          code: "VALIDATION_ERROR",
+          details: { field: "last_name" },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate last_name length
+    if (body.last_name.length > 100) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Last name cannot exceed 100 characters",
+          code: "VALIDATION_ERROR",
+          details: { field: "last_name", maxLength: 100 },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate party_id (required)
+    if (!body.party_id || !isValidUUID(body.party_id)) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Valid party ID is required",
+          code: "VALIDATION_ERROR",
+          details: { field: "party_id", value: body.party_id },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate biography length (if provided)
+    if (body.biography && body.biography.length > 5000) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Biography cannot exceed 5000 characters",
+          code: "VALIDATION_ERROR",
+          details: { field: "biography", maxLength: 5000 },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Verify party exists
+    const partyService = new PartyService();
+    const partyExists = await partyService.verifyPartyExists(body.party_id);
+
+    if (!partyExists) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Party not found",
+          code: "NOT_FOUND",
+          details: { field: "party_id", value: body.party_id },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // ========================================================================
+    // 4. Create Politician
+    // ========================================================================
+
+    const politicianService = new PoliticianService();
+    const politician = await politicianService.createPolitician(body);
+
+    // ========================================================================
+    // 5. Return Success Response
+    // ========================================================================
+
+    return new Response(
+      JSON.stringify({
+        data: politician,
+      }),
+      {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  } catch (error) {
+    // ========================================================================
+    // Error Handling
+    // ========================================================================
+
+    console.error("Error creating politician:", error);
+
+    const errorResponse: ErrorResponse = {
+      error: {
+        message: "Failed to create politician",
         code: "INTERNAL_ERROR",
       },
     };

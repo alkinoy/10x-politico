@@ -4,7 +4,13 @@
  */
 
 import { getSupabaseClient } from "@/db/client";
-import type { PoliticianDTO, PoliticianDetailDTO, PoliticiansQueryParams, PaginatedResponse } from "@/types";
+import type {
+  PoliticianDTO,
+  PoliticianDetailDTO,
+  PoliticiansQueryParams,
+  PaginatedResponse,
+  CreatePoliticianCommand,
+} from "@/types";
 
 export class PoliticianService {
   private supabase;
@@ -202,5 +208,71 @@ export class PoliticianService {
     const { data, error } = await this.supabase.from("politicians").select("id").eq("id", politicianId).single();
 
     return !error && !!data;
+  }
+
+  /**
+   * Creates a new politician
+   *
+   * @param command - Politician creation data
+   * @returns Created politician data with party information
+   */
+  async createPolitician(command: CreatePoliticianCommand): Promise<PoliticianDTO> {
+    const { first_name, last_name, party_id, biography } = command;
+
+    // Insert politician
+    const { data, error } = await this.supabase
+      .from("politicians")
+      .insert({
+        first_name,
+        last_name,
+        party_id,
+        biography: biography || null,
+      })
+      .select(
+        `
+        id,
+        first_name,
+        last_name,
+        party_id,
+        biography,
+        created_at,
+        updated_at,
+        parties!inner (
+          id,
+          name,
+          abbreviation,
+          color_hex
+        )
+      `
+      )
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create politician: ${error.message}`);
+    }
+
+    // Type assertion for nested party data
+    const parties = data.parties as unknown as {
+      id: string;
+      name: string;
+      abbreviation: string | null;
+      color_hex: string | null;
+    };
+
+    return {
+      id: data.id,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      party_id: data.party_id,
+      party: {
+        id: parties.id,
+        name: parties.name,
+        abbreviation: parties.abbreviation,
+        color_hex: parties.color_hex,
+      },
+      biography: data.biography,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    };
   }
 }

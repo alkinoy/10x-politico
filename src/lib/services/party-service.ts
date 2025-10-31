@@ -4,7 +4,7 @@
  */
 
 import { getSupabaseClient } from "@/db/client";
-import type { PartyDTO, PartiesQueryParams, ListResponse } from "@/types";
+import type { PartyDTO, PartiesQueryParams, ListResponse, CreatePartyCommand } from "@/types";
 
 export class PartyService {
   private supabase;
@@ -72,5 +72,32 @@ export class PartyService {
     const { data, error } = await this.supabase.from("parties").select("id").eq("id", partyId).single();
 
     return !error && !!data;
+  }
+
+  /**
+   * Creates a new party
+   *
+   * @param command - Party creation data
+   * @returns Created party data
+   */
+  async createParty(command: CreatePartyCommand): Promise<PartyDTO> {
+    const { name, abbreviation, description, color_hex } = command;
+
+    const { data, error } = await this.supabase
+      .from("parties")
+      .insert({
+        name,
+        abbreviation: abbreviation || null,
+        description: description || null,
+        color_hex: color_hex || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create party: ${error.message}`);
+    }
+
+    return data as PartyDTO;
   }
 }

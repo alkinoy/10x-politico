@@ -1,0 +1,53 @@
+---
+/**
+ * Add Politician Page
+ *
+ * Allows authenticated users to create new politician profiles.
+ * Includes inline party creation functionality.
+ */
+
+import Layout from "@/layouts/Layout.astro";
+import AddPoliticianForm from "@/components/politician/AddPoliticianForm";
+import { getSupabaseClientAnon, getSupabaseClient } from "@/db/client";
+import type { PartyDTO } from "@/types";
+
+// Check if user is authenticated
+const token = Astro.cookies.get("sb-access-token")?.value;
+
+if (!token) {
+  // Not authenticated, redirect to auth page with return URL
+  return Astro.redirect("/auth?returnUrl=/politicians/add");
+}
+
+// Verify token is valid
+const supabaseAuth = getSupabaseClientAnon();
+const {
+  data: { user },
+  error: authError,
+} = await supabaseAuth.auth.getUser(token);
+
+if (!user || authError) {
+  // Invalid token, redirect to auth
+  return Astro.redirect("/auth?returnUrl=/politicians/add");
+}
+
+// Fetch all parties for the party selector (using service role for data access)
+const supabase = getSupabaseClient();
+const { data: partiesData, error: partiesError } = await supabase
+  .from("parties")
+  .select("*")
+  .order("name", { ascending: true });
+
+if (partiesError) {
+  console.error("Error fetching parties:", partiesError);
+  return new Response("Failed to load parties", { status: 500 });
+}
+
+const parties = (partiesData || []) as PartyDTO[];
+---
+
+<Layout title="Add Politician - SpeechKarma">
+  <main class="container mx-auto px-4 py-8">
+    <AddPoliticianForm parties={parties} client:load />
+  </main>
+</Layout>

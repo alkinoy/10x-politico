@@ -1,13 +1,14 @@
 /**
- * API Route: GET /api/parties
+ * API Route: GET /api/parties, POST /api/parties
  *
- * Retrieves a list of all political parties with optional sorting.
- * Public endpoint - no authentication required.
+ * GET: Retrieves a list of all political parties with optional sorting (public endpoint)
+ * POST: Creates a new party (requires authentication)
  */
 
 import type { APIRoute } from "astro";
 import { PartyService } from "@/lib/services/party-service";
-import type { PartiesQueryParams, ErrorResponse } from "@/types";
+import { getAuthenticatedUser } from "@/lib/utils/auth";
+import type { PartiesQueryParams, CreatePartyCommand, ErrorResponse } from "@/types";
 
 /**
  * GET handler for parties list endpoint
@@ -108,6 +109,179 @@ export const GET: APIRoute = async ({ url }) => {
     const errorResponse: ErrorResponse = {
       error: {
         message: "Failed to retrieve parties",
+        code: "INTERNAL_ERROR",
+      },
+    };
+
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};
+
+/**
+ * POST handler for creating a new party
+ *
+ * Request Headers:
+ *   - Authorization: Bearer <jwt_token> (required)
+ *
+ * Request Body:
+ *   - name: string (required)
+ *   - abbreviation: string (optional)
+ *   - description: string (optional)
+ *   - color_hex: string (optional, format: #RRGGBB)
+ *
+ * Success Response (201):
+ *   - SingleResponse<PartyDTO>
+ *
+ * Error Responses:
+ *   - 400: Invalid request data
+ *   - 401: Authentication required
+ *   - 500: Internal server error
+ */
+export const POST: APIRoute = async ({ request }) => {
+  try {
+    // ========================================================================
+    // 1. Authenticate User
+    // ========================================================================
+
+    const authHeader = request.headers.get("Authorization");
+    const authenticatedUserId = await getAuthenticatedUser(authHeader);
+
+    if (!authenticatedUserId) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Authentication required",
+          code: "AUTHENTICATION_REQUIRED",
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // ========================================================================
+    // 2. Parse Request Body
+    // ========================================================================
+
+    let body: CreatePartyCommand;
+    try {
+      body = await request.json();
+    } catch {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Invalid JSON in request body",
+          code: "VALIDATION_ERROR",
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // ========================================================================
+    // 3. Validate Request Body
+    // ========================================================================
+
+    // Validate name (required)
+    if (!body.name || typeof body.name !== "string" || body.name.trim().length === 0) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Party name is required",
+          code: "VALIDATION_ERROR",
+          details: { field: "name" },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate name length
+    if (body.name.length > 100) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Party name cannot exceed 100 characters",
+          code: "VALIDATION_ERROR",
+          details: { field: "name", maxLength: 100 },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate abbreviation length (if provided)
+    if (body.abbreviation && body.abbreviation.length > 20) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Party abbreviation cannot exceed 20 characters",
+          code: "VALIDATION_ERROR",
+          details: { field: "abbreviation", maxLength: 20 },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate color_hex format (if provided)
+    if (body.color_hex && !/^#[0-9A-Fa-f]{6}$/.test(body.color_hex)) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          message: "Invalid color format. Must be in #RRGGBB format (e.g., #0000FF)",
+          code: "VALIDATION_ERROR",
+          details: { field: "color_hex" },
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // ========================================================================
+    // 4. Create Party
+    // ========================================================================
+
+    const partyService = new PartyService();
+    const party = await partyService.createParty(body);
+
+    // ========================================================================
+    // 5. Return Success Response
+    // ========================================================================
+
+    return new Response(
+      JSON.stringify({
+        data: party,
+      }),
+      {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  } catch (error) {
+    // ========================================================================
+    // Error Handling
+    // ========================================================================
+
+    console.error("Error creating party:", error);
+
+    const errorResponse: ErrorResponse = {
+      error: {
+        message: "Failed to create party",
         code: "INTERNAL_ERROR",
       },
     };

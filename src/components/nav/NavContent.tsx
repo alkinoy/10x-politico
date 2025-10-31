@@ -103,15 +103,26 @@ export default function NavContent({ currentPath }: NavContentProps) {
         </a>
 
         {!isLoading && isAuthenticated && (
-          <a
-            href="/statements/new"
-            className={`text-sm font-medium transition-colors hover:text-foreground ${
-              isLinkActive("/statements/new", currentPath) ? "text-foreground" : "text-muted-foreground"
-            }`}
-            aria-current={isLinkActive("/statements/new", currentPath) ? "page" : undefined}
-          >
-            Submit Statement
-          </a>
+          <>
+            <a
+              href="/statements/new"
+              className={`text-sm font-medium transition-colors hover:text-foreground ${
+                isLinkActive("/statements/new", currentPath) ? "text-foreground" : "text-muted-foreground"
+              }`}
+              aria-current={isLinkActive("/statements/new", currentPath) ? "page" : undefined}
+            >
+              Submit Statement
+            </a>
+            <a
+              href="/politicians/add"
+              className={`text-sm font-medium transition-colors hover:text-foreground ${
+                isLinkActive("/politicians/add", currentPath) ? "text-foreground" : "text-muted-foreground"
+              }`}
+              aria-current={isLinkActive("/politicians/add", currentPath) ? "page" : undefined}
+            >
+              Add Politician
+            </a>
+          </>
         )}
       </nav>
 

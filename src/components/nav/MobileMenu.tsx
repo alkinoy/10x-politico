@@ -176,6 +176,19 @@ export default function MobileMenu({
                     Submit Statement
                   </a>
 
+                  <a
+                    href="/politicians/add"
+                    onClick={closeMenu}
+                    className={`rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-muted ${
+                      isLinkActive("/politicians/add", currentPath)
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    aria-current={isLinkActive("/politicians/add", currentPath) ? "page" : undefined}
+                  >
+                    Add Politician
+                  </a>
+
                   {/* Divider */}
                   <div className="my-2 border-t" />
 
