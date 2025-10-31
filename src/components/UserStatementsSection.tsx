@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { StatementDetailDTO, PaginationDTO } from "@/types";
 import { Button } from "@/components/ui/button";
 import GracePeriodIndicator from "@/components/GracePeriodIndicator";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 
 interface UserStatementsSectionProps {
   userId: string;
@@ -79,9 +80,21 @@ export default function UserStatementsSection({ userId }: UserStatementsSectionP
       setDeletingId(statementId);
 
       try {
+        // Get the current session for authentication
+        const supabase = createBrowserSupabaseClient();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session?.access_token) {
+          throw new Error("Authentication required. Please sign in again.");
+        }
+
         const response = await fetch(`/api/statements/${statementId}`, {
           method: "DELETE",
-          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
         });
 
         if (!response.ok) {

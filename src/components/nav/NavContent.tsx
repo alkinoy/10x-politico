@@ -27,6 +27,7 @@ export default function NavContent({ currentPath }: NavContentProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -55,6 +56,21 @@ export default function NavContent({ currentPath }: NavContentProps) {
       subscription.unsubscribe();
     };
   }, []);
+
+  const handleSignOut = async () => {
+    try {
+      setIsSigningOut(true);
+      const supabase = createBrowserSupabaseClient();
+      await supabase.auth.signOut();
+      // Redirect to home page after sign-out
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Error signing out:", error);
+      setIsSigningOut(false);
+      // Still redirect even on error
+      window.location.href = "/";
+    }
+  };
 
   return (
     <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -114,14 +130,13 @@ export default function NavContent({ currentPath }: NavContentProps) {
             >
               {userName || "Profile"}
             </a>
-            <form method="POST" action="/api/auth/signout" className="inline">
-              <button
-                type="submit"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Sign Out
-              </button>
-            </form>
+            <button
+              onClick={handleSignOut}
+              disabled={isSigningOut}
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+            >
+              {isSigningOut ? "Signing out..." : "Sign Out"}
+            </button>
           </>
         ) : (
           <a
@@ -140,6 +155,8 @@ export default function NavContent({ currentPath }: NavContentProps) {
           userName={userName}
           currentPath={currentPath}
           isLoading={isLoading}
+          onSignOut={handleSignOut}
+          isSigningOut={isSigningOut}
         />
       </div>
     </div>

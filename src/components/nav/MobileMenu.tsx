@@ -13,6 +13,8 @@ interface MobileMenuProps {
   userName?: string | null;
   currentPath: string;
   isLoading?: boolean;
+  onSignOut?: () => void;
+  isSigningOut?: boolean;
 }
 
 /**
@@ -25,7 +27,14 @@ function isLinkActive(href: string, current: string): boolean {
   return current.startsWith(href);
 }
 
-export default function MobileMenu({ isAuthenticated, userName, currentPath, isLoading = false }: MobileMenuProps) {
+export default function MobileMenu({
+  isAuthenticated,
+  userName,
+  currentPath,
+  isLoading = false,
+  onSignOut,
+  isSigningOut = false,
+}: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
@@ -183,14 +192,13 @@ export default function MobileMenu({ isAuthenticated, userName, currentPath, isL
                     {userName || "Profile"}
                   </a>
 
-                  <form method="POST" action="/api/auth/signout">
-                    <button
-                      type="submit"
-                      className="w-full rounded-md px-3 py-3 text-left text-base font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      Sign Out
-                    </button>
-                  </form>
+                  <button
+                    onClick={onSignOut}
+                    disabled={isSigningOut}
+                    className="w-full rounded-md px-3 py-3 text-left text-base font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                  >
+                    {isSigningOut ? "Signing out..." : "Sign Out"}
+                  </button>
                 </>
               )}
 

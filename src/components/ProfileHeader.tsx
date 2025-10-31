@@ -12,6 +12,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import EditProfileForm from "@/components/EditProfileForm";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 
 interface ProfileHeaderProps {
   profile: ProfileDTO;
@@ -50,6 +51,16 @@ export default function ProfileHeader({ profile, onUpdate }: ProfileHeaderProps)
   // Handle profile update
   const handleSaveProfile = useCallback(
     async (newDisplayName: string) => {
+      // Get the current session for authentication
+      const supabase = createBrowserSupabaseClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error("Authentication required. Please sign in again.");
+      }
+
       const command: UpdateProfileCommand = {
         display_name: newDisplayName,
       };
@@ -58,8 +69,8 @@ export default function ProfileHeader({ profile, onUpdate }: ProfileHeaderProps)
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
         },
-        credentials: "include",
         body: JSON.stringify(command),
       });
 

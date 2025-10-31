@@ -10,6 +10,7 @@ import type { ProfileDTO } from "@/types";
 import ProfileHeader from "@/components/ProfileHeader";
 import UserStatementsSection from "@/components/UserStatementsSection";
 import SignOutButton from "@/components/SignOutButton";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 
 interface UserProfileState {
   profile: ProfileDTO | null;
@@ -31,11 +32,22 @@ export default function UserProfile() {
     setState((prev) => ({ ...prev, isLoadingProfile: true, profileError: null }));
 
     try {
+      // Get the current session for authentication
+      const supabase = createBrowserSupabaseClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        setState((prev) => ({ ...prev, authError: true, isLoadingProfile: false }));
+        return;
+      }
+
       const response = await fetch("/api/profiles/me", {
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
         },
-        credentials: "include",
       });
 
       if (!response.ok) {
