@@ -2,13 +2,19 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../../src/db/database.types";
 
 const supabaseUrl = process.env.SUPABASE_URL || "";
-const supabaseKey = process.env.SUPABASE_ANON_KEY || "";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY must be set in .env.test");
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env.test");
 }
 
-export const testDb = createClient<Database>(supabaseUrl, supabaseKey);
+// Use service role key for tests - has admin privileges and bypasses RLS
+export const testDb = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 
 /**
  * Clean up test data before/after tests
