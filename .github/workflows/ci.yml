@@ -165,7 +165,19 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
+
+          # Ensure the secret is present
+          if [ -z "${SUPABASE_DB_URL}" ]; then
+            echo "✗ SUPABASE_DB_URL is empty. This usually happens on PRs from forks or missing secrets."
+            exit 1
+          fi
+
+          # Hide in logs
+          echo "::add-mask::${SUPABASE_DB_URL}"
+
+          echo "Seeding remote database..."
           psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/seed.sql
+          echo "✓ Database seeded successfully"
 
       
       - name: Create .env.test file
