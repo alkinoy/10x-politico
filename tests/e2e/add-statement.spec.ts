@@ -12,6 +12,13 @@ const TEST_PARTY_ID = "20202020-2020-2020-2020-202020202020";
 const TEST_POLITICIAN_ID = "40404040-4040-4040-4040-404040404040";
 
 test.describe("Add Statement Page", () => {
+  test("should redirect to auth page if not authenticated", async ({ page }) => {
+    await page.goto("/statements/new");
+    await expect(page).toHaveURL(/\/auth/);
+  });
+});
+
+test.describe("Add Statement Page - Authenticated", () => {
   let testUserId: string;
 
   // Setup: Create test user and seed required data
@@ -61,11 +68,6 @@ test.describe("Add Statement Page", () => {
       politicianIds: [TEST_POLITICIAN_ID],
       partyIds: [TEST_PARTY_ID],
     });
-  });
-
-  test("should redirect to auth page if not authenticated", async ({ page }) => {
-    await page.goto("/statements/new");
-    await expect(page).toHaveURL(/\/auth/);
   });
 
   test("should display form when authenticated", async ({ page }) => {
