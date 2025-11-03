@@ -148,11 +148,25 @@ jobs:
       - name: Apply migrations to cloud Supabase
         run: |
           echo "Applying migrations to cloud Supabase..."
-          supabase db reset
+          supabase db push
           
           echo "✓ Migrations applied successfully"
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      
+      - name: Install psql
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Seed data (remote)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/seed.sql
+
       
       - name: Create .env.test file
         run: |
