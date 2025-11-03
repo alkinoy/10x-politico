@@ -112,8 +112,10 @@ jobs:
     environment: integration
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      USE_AI_SUMMARY: false
+      OPENROUTER_API_KEY: dummy-key-not-used-in-tests
       CI: true
     steps:
       - uses: actions/checkout@v4
@@ -131,8 +133,10 @@ jobs:
         run: |
           cat > .env.test << EOF
           SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
-          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          USE_AI_SUMMARY=false
+          OPENROUTER_API_KEY=dummy-key-not-used-in-tests
           EOF
       
       - name: Install Playwright browsers

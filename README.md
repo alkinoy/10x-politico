@@ -100,11 +100,13 @@ npm install
 
 3. Set up environment variables:
 ```bash
-# Create .env file with required variables
-# SUPABASE_URL=your_supabase_url
-# SUPABASE_ANON_KEY=your_supabase_anon_key
-# OPENROUTER_API_KEY=your_openrouter_key (if using AI features)
+# Copy the example file and fill in your values
+cp .env.example .env
+
+# See ENV_SETUP.md for detailed instructions
 ```
+
+For detailed environment setup instructions, see [ENV_SETUP.md](ENV_SETUP.md)
 
 4. Start the development server:
 ```bash
@@ -204,7 +206,7 @@ The application will be available at `http://localhost:4321`
 
 ## 🧪 Testing
 
-This project uses **Vitest** for testing. For detailed testing documentation, see [TESTING.md](TESTING.md).
+This project uses **Vitest** for unit tests and **Playwright** for E2E tests. For detailed testing documentation, see [TESTING.md](TESTING.md).
 
 ### Quick Testing Commands
 
@@ -212,15 +214,29 @@ This project uses **Vitest** for testing. For detailed testing documentation, se
 # Run all checks before pushing
 make pp
 
-# Run tests only
+# Run unit tests
 make test
 
 # Run tests in watch mode (development)
 make test-watch
 
+# Run E2E tests
+npm run test:e2e
+
 # Generate coverage report
 make test-coverage
 ```
+
+### CI/CD
+
+The project uses GitHub Actions for continuous integration. For setting up GitHub Actions secrets for E2E tests, see [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md).
+
+The CI pipeline runs:
+- Linting checks
+- Unit tests
+- Build verification
+- E2E tests with Playwright
+- Health endpoint checks
 
 ## 🤝 Contributing
 
