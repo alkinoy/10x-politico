@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { cleanupSpecificTestData, testDb } from "./helpers/db-helpers";
+import { cleanupSpecificTestData, createTestUser, testDb } from "./helpers/db-helpers";
 import { authenticateUser } from "./helpers/auth-helpers";
 
 // Test configuration
-// Use one of the seeded test users from seed.sql
-const TEST_USER_EMAIL = "alice@example.com";
-const TEST_USER_PASSWORD = "password123";
-// Alice's user ID from seed.sql
-const TEST_USER_ID = "11111111-1111-1111-1111-111111111111";
+// Create a unique test user for this test run
+const TEST_USER_EMAIL = `e2etest${Date.now()}@example.com`;
+const TEST_USER_PASSWORD = "TestPassword123!";
 
 // Unique IDs for this test suite's data
 const TEST_PARTY_ID = "20202020-2020-2020-2020-202020202020";
@@ -21,8 +19,17 @@ test.describe("Add Statement Page", () => {
 });
 
 test.describe("Add Statement Page - Authenticated", () => {
-  // Setup: Seed required test data
+  let testUserId: string;
+
+  // Setup: Create test user and seed required data
   test.beforeAll(async () => {
+    // Create test user via Admin API (bypasses email confirmation)
+    const user = await createTestUser(TEST_USER_EMAIL, TEST_USER_PASSWORD);
+    if (!user) {
+      throw new Error("Failed to create test user");
+    }
+    testUserId = user.id;
+
     // Clean up any existing test data with these IDs
     await cleanupSpecificTestData({
       politicianIds: [TEST_POLITICIAN_ID],
@@ -52,7 +59,7 @@ test.describe("Add Statement Page - Authenticated", () => {
   // Cleanup after each test
   test.afterEach(async () => {
     // Delete any statements created during tests
-    await testDb.from("statements").delete().eq("created_by_user_id", TEST_USER_ID);
+    await testDb.from("statements").delete().eq("created_by_user_id", testUserId);
   });
 
   // Final cleanup
@@ -61,6 +68,11 @@ test.describe("Add Statement Page - Authenticated", () => {
       politicianIds: [TEST_POLITICIAN_ID],
       partyIds: [TEST_PARTY_ID],
     });
+
+    // Clean up test user
+    if (testUserId) {
+      await testDb.auth.admin.deleteUser(testUserId);
+    }
   });
 
   test("should display form when authenticated", async ({ page }) => {
