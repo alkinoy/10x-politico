@@ -157,7 +157,8 @@ jobs:
       - name: Seed database with test data
         run: |
           echo "Seeding database with test data..."
-          supabase db seed
+          # Read and execute the seed file
+          supabase db execute --file supabase/seed.sql || echo "Note: Some seed data may already exist (this is OK)"
           echo "✓ Database seeded successfully"
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

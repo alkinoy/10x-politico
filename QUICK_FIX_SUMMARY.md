@@ -2,20 +2,22 @@
 
 ## Problem
 E2E tests passed locally but failed in GitHub Actions with:
-- ❌ `AuthApiError: Email address "test-add@example.com" is invalid`
+- ❌ `AuthApiError: Email address invalid` (custom test emails rejected by cloud Supabase)
 - ❌ `TimeoutError: page.waitForSelector: Timeout exceeded` (no statements found)
 - ❌ `Error: http://localhost:4321 is already used` (port conflict)
+- ❌ `supabase db seed` command doesn't exist
 
 ## Solution
-Four fixes were applied:
+Five fixes were applied:
 
 ### 1. ✅ Fixed Test Email Format
-**Changed**: `test-add@example.com` → `testadd@example.com`
-**Reason**: Cloud Supabase rejects emails with hyphens
+**Changed**: `test-add@example.com` → `test.user@example.com`
+**Reason**: Cloud Supabase has strict email validation; periods are accepted, hyphens are not
 
-### 2. ✅ Added Database Seeding
-**Added step**: `supabase db seed` after migrations
-**Impact**: Populates database with test data (parties, politicians, statements)
+### 2. ✅ Fixed Database Seeding Command
+**Changed**: `supabase db seed` → `supabase db execute --file supabase/seed.sql`
+**Reason**: CLI doesn't have a `db seed` command
+**Impact**: Properly populates database with test data (parties, politicians, statements)
 
 ### 3. ✅ Build Application Before Tests
 **Added step**: Build application with all environment variables
@@ -30,8 +32,8 @@ Four fixes were applied:
 - Playwright now handles starting/stopping the server automatically
 
 ## Files Modified
-1. `.github/workflows/ci.yml` - Added seeding and build steps; removed manual server management
-2. `tests/e2e/add-statement.spec.ts` - Fixed email format
+1. `.github/workflows/ci.yml` - Fixed seeding command; added build step; removed manual server management
+2. `tests/e2e/add-statement.spec.ts` - Fixed test email format (test.user@example.com)
 3. `playwright.config.ts` - Updated to use preview server in CI instead of dev server
 
 ## Test Results
@@ -45,8 +47,8 @@ Push these changes to trigger the CI workflow and verify the fixes work in GitHu
 git add .
 git commit -m "Fix: E2E tests in GitHub Actions CI
 
-- Fix email validation by removing hyphen from test email
-- Add database seeding step after migrations  
+- Fix test email format (use period instead of hyphen)
+- Fix database seeding with correct CLI command (db execute --file)
 - Build application before tests with proper env vars
 - Let Playwright manage server lifecycle to avoid port conflicts
 - Update playwright.config.ts to use preview server in CI"

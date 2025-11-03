@@ -3,7 +3,8 @@ import { cleanupSpecificTestData, createTestUser, testDb } from "./helpers/db-he
 import { authenticateUser } from "./helpers/auth-helpers";
 
 // Test configuration
-const TEST_USER_EMAIL = "testadd@example.com";
+// Use a valid email format that cloud Supabase will accept
+const TEST_USER_EMAIL = "test.user@example.com";
 const TEST_USER_PASSWORD = "TestPassword123!";
 
 // Unique IDs for this test suite's data
