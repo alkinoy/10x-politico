@@ -154,30 +154,63 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       
-      - name: Install psql
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-
-      - name: Seed data (remote)
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Seed remote database
         run: |
           set -euo pipefail
-
-          # Ensure the secret is present
-          if [ -z "${SUPABASE_DB_URL}" ]; then
-            echo "✗ SUPABASE_DB_URL is empty. This usually happens on PRs from forks or missing secrets."
+          
+          echo "Seeding remote Supabase database..."
+          
+          # Check if connection string is provided
+          if [ -z "${{ secrets.SUPABASE_DSN }}" ]; then
+            echo "✗ SUPABASE_DSN secret is not set"
+            echo ""
+            echo "Please add SUPABASE_DSN to your GitHub repository secrets:"
+            echo "  1. Go to Supabase Dashboard > Settings > Database"
+            echo "  2. Find 'Connection string' section"
+            echo "  3. Copy the 'Connection pooling' string (URI format, port 6543)"
+            echo "  4. Replace [YOUR-PASSWORD] with your database password"
+            echo "  5. Go to GitHub repo > Settings > Secrets and variables > Actions"
+            echo "  6. Add it as SUPABASE_DSN secret"
             exit 1
           fi
-
-          # Hide in logs
-          echo "::add-mask::${SUPABASE_DB_URL}"
-
-          echo "Seeding remote database..."
-          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/seed.sql
+          
+          DB_URL="${{ secrets.SUPABASE_DSN }}"
+          
+          # Hide connection string in logs
+          echo "::add-mask::${DB_URL}"
+          echo "Using SUPABASE_DSN connection string"
+          
+          # Install psql
+          echo "Installing PostgreSQL client..."
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+          
+          # Test connection
+          echo "Testing database connection..."
+          if ! psql "${DB_URL}" -c "SELECT version();" > /dev/null 2>&1; then
+            echo "✗ Failed to connect to database"
+            echo ""
+            echo "Connection test failed. Possible issues:"
+            echo "1. Wrong database password in SUPABASE_DSN"
+            echo "2. Incorrect connection string format"
+            echo "3. Database not accessible from GitHub Actions IP"
+            echo ""
+            echo "Your connection string should look like:"
+            echo "postgresql://postgres.[PROJECT-REF]:[PASSWORD]@[HOST]:[PORT]/[DATABASE]"
+            echo ""
+            echo "Debug: Try running this locally with your connection string:"
+            echo "psql \"\$SUPABASE_DSN\" -c \"SELECT version();\""
+            exit 1
+          fi
+          echo "✓ Database connection successful"
+          
+          # Run seed file
+          echo "Running seed.sql..."
+          psql "${DB_URL}" -v ON_ERROR_STOP=1 -f supabase/seed.sql
+          
           echo "✓ Database seeded successfully"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
       
       - name: Create .env.test file
