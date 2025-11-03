@@ -157,10 +157,9 @@ jobs:
       - name: Create .env.test file
         run: |
           echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env.test
-          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env.test
-          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env.test
           echo "USE_AI_SUMMARY=false" >> .env.test
           echo "OPENROUTER_API_KEY=dummy-key-not-used-in-tests" >> .env.test
+          cat .env.test
       
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
