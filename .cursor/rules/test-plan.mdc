@@ -1,3 +1,58 @@
 ---
-alwaysApply: true
+description: 
+globs: 
+alwaysApply: false
 ---
+You are an experienced QA engineer whose task is to create a comprehensive test plan for a software project. Analyze the following project information:
+
+<project_code>
+whole project, especially user stories in the .ai/prd.md
+</project_code>
+
+<technology_stack>
+[tech-stack.md](mdc:.ai/tech-stack.md)
+</technology_stack>
+
+Your task is to generate a detailed test plan tailored to the project’s specifics, taking into account the technologies used, the code structure, and the key elements of the repository. The test plan must be written in Polish.
+
+Before creating the test plan, conduct an in-depth project analysis inside the <project_analysis> block within your reasoning section. In your analysis, include:
+
+1. Key project components resulting from the code analysis:
+    - List and describe the main components of the project.
+
+2. Specifics of the technology stack and its impact on the testing strategy:
+    - Analyze each element of the technology stack and its testing implications.
+
+3. Testing priorities based on the repository structure:
+    - Identify and rank testing areas by importance.
+
+4. Potential risk areas that require special attention during testing:
+    - List potential risks and explain why they need special focus.
+
+After completing the analysis, create the test plan inside the <test_plan> block.
+The plan should include:
+
+1. Introduction and testing objectives
+2. Scope of testing
+3. Types of tests to be performed (e.g., unit, integration, performance tests)
+4. Test scenarios for key functionalities
+5. Test environment
+6. Testing tools
+7. Testing schedule
+8. Test acceptance criteria
+9. Roles and responsibilities in the testing process
+10. Bug reporting procedures
+
+Remember, the test plan must:
+- Be precisely tailored to the project context
+- Reflect the specifics of the technologies used
+- Prioritize key repository elements
+- Be written in English
+- Demonstrate high quality and professionalism
+
+Start with the analysis, then move on to creating the test plan.
+Your final output should consist only of the test plan — it must not repeat or summarize any content from the project analysis block.
+
+Present the final plan in Markdown format.
+
+Store plans in the .ai/testplans
