@@ -156,10 +156,20 @@ jobs:
       
       - name: Create .env.test file
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env.test
-          echo "USE_AI_SUMMARY=false" >> .env.test
+          echo "USE_AI_SUMMARY=false" > .env.test
+          echo "BASE_URL=http://localhost:4321" >> .env.test
+          echo "TEST_USER_EMAIL=test@example.com" >> .env.test
+          echo "TEST_USER_PASSWORD=TestPassword123!" >> .env.test
+          echo "" >> .env.test
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env.test
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env.test
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env.test
+          echo "" >> .env.test
+          echo "PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env.test
+          echo "PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env.test
+          echo "" >> .env.test
           echo "OPENROUTER_API_KEY=dummy-key-not-used-in-tests" >> .env.test
-          cat .env.test
+          echo "Created .env.test with $(wc -l < .env.test) lines"
       
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
