@@ -53,7 +53,10 @@ export default defineConfig({
 
   // Run local dev server before starting the tests
   webServer: {
-    command: "node --env-file=.env.test ./node_modules/.bin/astro dev",
+    // Use preview server in CI (with pre-built app), dev server locally
+    command: process.env.CI 
+      ? "npm run preview -- --host 0.0.0.0 --port 4321"
+      : "node --env-file=.env.test ./node_modules/.bin/astro dev",
     url: "http://localhost:4321",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

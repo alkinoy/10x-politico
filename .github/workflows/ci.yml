@@ -193,37 +193,11 @@ jobs:
           USE_AI_SUMMARY: false
           OPENROUTER_API_KEY: dummy-key-not-used-in-tests
       
-      - name: Start server in background
-        run: |
-          npm run preview -- --host 0.0.0.0 --port 4321 &
-          echo $! > server.pid
-          echo "Waiting for server to start..."
-          sleep 5
-          # Wait for server to be ready
-          max_attempts=30
-          attempt=0
-          while [ $attempt -lt $max_attempts ]; do
-            if curl -s http://localhost:4321 > /dev/null; then
-              echo "✓ Server is ready"
-              break
-            fi
-            attempt=$((attempt + 1))
-            echo "Attempt $attempt/$max_attempts - waiting..."
-            sleep 2
-          done
+      - name: Run E2E tests
+        run: npm run test:e2e
         env:
           PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      
-      - name: Run E2E tests
-        run: npm run test:e2e
-      
-      - name: Stop server
-        if: always()
-        run: |
-          if [ -f server.pid ]; then
-            kill $(cat server.pid) || true
-          fi
       
       - name: Upload E2E test coverage
         if: always()
