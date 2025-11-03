@@ -3,7 +3,8 @@ import { cleanupSpecificTestData, createTestUser, testDb } from "./helpers/db-he
 import { authenticateUser } from "./helpers/auth-helpers";
 
 // Test configuration
-const TEST_USER_EMAIL = "test-add@example.com";
+// Create a unique test user for this test run
+const TEST_USER_EMAIL = `e2etest${Date.now()}@example.com`;
 const TEST_USER_PASSWORD = "TestPassword123!";
 
 // Unique IDs for this test suite's data
@@ -11,11 +12,18 @@ const TEST_PARTY_ID = "20202020-2020-2020-2020-202020202020";
 const TEST_POLITICIAN_ID = "40404040-4040-4040-4040-404040404040";
 
 test.describe("Add Statement Page", () => {
+  test("should redirect to auth page if not authenticated", async ({ page }) => {
+    await page.goto("/statements/new");
+    await expect(page).toHaveURL(/\/auth/);
+  });
+});
+
+test.describe("Add Statement Page - Authenticated", () => {
   let testUserId: string;
 
   // Setup: Create test user and seed required data
   test.beforeAll(async () => {
-    // Create test user
+    // Create test user via Admin API (bypasses email confirmation)
     const user = await createTestUser(TEST_USER_EMAIL, TEST_USER_PASSWORD);
     if (!user) {
       throw new Error("Failed to create test user");
@@ -60,11 +68,11 @@ test.describe("Add Statement Page", () => {
       politicianIds: [TEST_POLITICIAN_ID],
       partyIds: [TEST_PARTY_ID],
     });
-  });
 
-  test("should redirect to auth page if not authenticated", async ({ page }) => {
-    await page.goto("/statements/new");
-    await expect(page).toHaveURL(/\/auth/);
+    // Clean up test user
+    if (testUserId) {
+      await testDb.auth.admin.deleteUser(testUserId);
+    }
   });
 
   test("should display form when authenticated", async ({ page }) => {

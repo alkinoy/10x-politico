@@ -104,3 +104,248 @@ jobs:
           if [ -f server.pid ]; then
             kill $(cat server.pid) || true
           fi
+
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    environment: integration
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      USE_AI_SUMMARY: false
+      OPENROUTER_API_KEY: dummy-key-not-used-in-tests
+      CI: true
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      
+      - name: Link to Supabase project
+        run: |
+          # Extract project ref from SUPABASE_URL
+          PROJECT_REF=$(echo ${{ secrets.SUPABASE_URL }} | sed -n 's/.*\/\/\([^.]*\).*/\1/p')
+          echo "Linking to project: $PROJECT_REF"
+          
+          # Link to the cloud project
+          supabase link --project-ref $PROJECT_REF
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      
+      - name: Apply migrations to cloud Supabase
+        run: |
+          echo "Applying migrations to cloud Supabase..."
+          supabase db push
+          
+          echo "✓ Migrations applied successfully"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      
+      - name: Seed remote database
+        run: |
+          set -euo pipefail
+          
+          echo "Seeding remote Supabase database..."
+          
+          # Check if connection string is provided
+          if [ -z "${{ secrets.SUPABASE_DSN }}" ]; then
+            echo "✗ SUPABASE_DSN secret is not set"
+            echo ""
+            echo "Please add SUPABASE_DSN to your GitHub repository secrets:"
+            echo "  1. Go to Supabase Dashboard > Settings > Database"
+            echo "  2. Find 'Connection string' section"
+            echo "  3. Copy the 'Connection pooling' string (URI format, port 6543)"
+            echo "  4. Replace [YOUR-PASSWORD] with your database password"
+            echo "  5. Go to GitHub repo > Settings > Secrets and variables > Actions"
+            echo "  6. Add it as SUPABASE_DSN secret"
+            exit 1
+          fi
+          
+          DB_URL="${{ secrets.SUPABASE_DSN }}"
+          
+          # Hide connection string in logs
+          echo "::add-mask::${DB_URL}"
+          echo "Using SUPABASE_DSN connection string"
+          
+          # Install psql
+          echo "Installing PostgreSQL client..."
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+          
+          # Test connection
+          echo "Testing database connection..."
+          if ! psql "${DB_URL}" -c "SELECT version();" > /dev/null 2>&1; then
+            echo "✗ Failed to connect to database"
+            echo ""
+            echo "Connection test failed. Possible issues:"
+            echo "1. Wrong database password in SUPABASE_DSN"
+            echo "2. Incorrect connection string format"
+            echo "3. Database not accessible from GitHub Actions IP"
+            echo ""
+            echo "Your connection string should look like:"
+            echo "postgresql://postgres.[PROJECT-REF]:[PASSWORD]@[HOST]:[PORT]/[DATABASE]"
+            echo ""
+            echo "Debug: Try running this locally with your connection string:"
+            echo "psql \"\$SUPABASE_DSN\" -c \"SELECT version();\""
+            exit 1
+          fi
+          echo "✓ Database connection successful"
+          
+          # Run seed file
+          echo "Running seed.sql..."
+          psql "${DB_URL}" -v ON_ERROR_STOP=1 -f supabase/seed.sql
+          
+          echo "✓ Database seeded successfully"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      
+      - name: Create .env.test file
+        run: |
+          echo "USE_AI_SUMMARY=false" > .env.test
+          echo "BASE_URL=http://localhost:4321" >> .env.test
+          echo "TEST_USER_EMAIL=test@example.com" >> .env.test
+          echo "TEST_USER_PASSWORD=TestPassword123!" >> .env.test
+          echo "" >> .env.test
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env.test
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env.test
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env.test
+          echo "" >> .env.test
+          echo "PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env.test
+          echo "PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env.test
+          echo "" >> .env.test
+          echo "OPENROUTER_API_KEY=dummy-key-not-used-in-tests" >> .env.test
+          echo "Created .env.test with $(wc -l < .env.test) lines"
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      
+      - name: Build application
+        run: npm run build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          USE_AI_SUMMARY: false
+          OPENROUTER_API_KEY: dummy-key-not-used-in-tests
+      
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      
+      - name: Upload E2E test coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-coverage
+          path: playwright-report/
+          retention-days: 7
+      
+      - name: Upload E2E test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: test-results/
+          retention-days: 7
+
+  status-comment:
+    name: Status Comment
+    runs-on: ubuntu-latest
+    needs: [lint, test, e2e-test]
+    if: always()
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Check job statuses
+        id: check
+        run: |
+          lint_status="${{ needs.lint.result }}"
+          unit_test_status="${{ needs.test.result }}"
+          e2e_test_status="${{ needs.e2e-test.result }}"
+          
+          echo "lint_status=$lint_status" >> $GITHUB_OUTPUT
+          echo "unit_test_status=$unit_test_status" >> $GITHUB_OUTPUT
+          echo "e2e_test_status=$e2e_test_status" >> $GITHUB_OUTPUT
+          
+          if [[ "$lint_status" == "success" ]] && [[ "$unit_test_status" == "success" ]] && [[ "$e2e_test_status" == "success" ]]; then
+            echo "overall_status=success" >> $GITHUB_OUTPUT
+            echo "overall_emoji=✅" >> $GITHUB_OUTPUT
+          else
+            echo "overall_status=failure" >> $GITHUB_OUTPUT
+            echo "overall_emoji=❌" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create status comment
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const lintStatus = '${{ steps.check.outputs.lint_status }}';
+            const unitTestStatus = '${{ steps.check.outputs.test_status }}';
+            const e2eTestStatus = '${{ steps.check.outputs.e2e_test_status }}';
+            const overallStatus = '${{ steps.check.outputs.overall_status }}';
+            const overallEmoji = '${{ steps.check.outputs.overall_emoji }}';
+            
+            const getStatusEmoji = (status) => {
+              return status === 'success' ? '✅' : status === 'failure' ? '❌' : '⚠️';
+            };
+            
+            const comment = `## ${overallEmoji} PR Status Report
+            
+            | Job | Status |
+            |-----|--------|
+            | Lint | ${getStatusEmoji(lintStatus)} ${lintStatus} |
+            | Unit Tests | ${getStatusEmoji(unitTestStatus)} ${unitTestStatus} |
+            | E2E Tests | ${getStatusEmoji(e2eTestStatus)} ${e2eTestStatus} |
+            
+            **Overall Status:** ${overallEmoji} ${overallStatus.toUpperCase()}
+            
+            ---
+            *Workflow run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*`;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('PR Status Report')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
