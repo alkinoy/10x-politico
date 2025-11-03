@@ -4,7 +4,8 @@ import { authenticateUser } from "./helpers/auth-helpers";
 
 // Test configuration
 // Use a valid email format that cloud Supabase will accept
-const TEST_USER_EMAIL = "test.user@example.com";
+// Generate unique email to avoid conflicts across test runs
+const TEST_USER_EMAIL = `testuser${Date.now()}@example.com`;
 const TEST_USER_PASSWORD = "TestPassword123!";
 
 // Unique IDs for this test suite's data
