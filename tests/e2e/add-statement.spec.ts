@@ -3,10 +3,9 @@ import { cleanupSpecificTestData, createTestUser, testDb } from "./helpers/db-he
 import { authenticateUser } from "./helpers/auth-helpers";
 
 // Test configuration
-// Use a valid email format that cloud Supabase will accept
-// Generate unique email to avoid conflicts across test runs
-const TEST_USER_EMAIL = `testuser${Date.now()}@example.com`;
-const TEST_USER_PASSWORD = "TestPassword123!";
+// Use one of the seeded test users from seed.sql
+const TEST_USER_EMAIL = "alice@example.com";
+const TEST_USER_PASSWORD = "password123";
 
 // Unique IDs for this test suite's data
 const TEST_PARTY_ID = "20202020-2020-2020-2020-202020202020";
