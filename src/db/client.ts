@@ -15,11 +15,20 @@ export type SupabaseClient = ReturnType<typeof createClient<Database>>;
  * Creates a Supabase client with service role key
  * Used for server-side operations that bypass RLS policies
  *
+ * @param runtime - Optional runtime environment (for Cloudflare)
  * @returns Supabase client with service role privileges
  */
-export function getSupabaseClient(): SupabaseClient {
-  const supabaseUrl = import.meta.env.SUPABASE_URL;
-  const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+export function getSupabaseClient(runtime?: Record<string, string>): SupabaseClient {
+  // Try runtime env (Cloudflare), then import.meta.env (Node), then process.env
+  const supabaseUrl =
+    runtime?.SUPABASE_URL ||
+    (typeof import.meta !== "undefined" && import.meta.env?.SUPABASE_URL) ||
+    (typeof process !== "undefined" && process.env?.SUPABASE_URL);
+
+  const serviceRoleKey =
+    runtime?.SUPABASE_SERVICE_ROLE_KEY ||
+    (typeof import.meta !== "undefined" && import.meta.env?.SUPABASE_SERVICE_ROLE_KEY) ||
+    (typeof process !== "undefined" && process.env?.SUPABASE_SERVICE_ROLE_KEY);
 
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error(
@@ -39,11 +48,20 @@ export function getSupabaseClient(): SupabaseClient {
  * Creates a Supabase client with anon key
  * Used for client-side operations and authentication
  *
+ * @param runtime - Optional runtime environment (for Cloudflare)
  * @returns Supabase client with anon key
  */
-export function getSupabaseClientAnon(): SupabaseClient {
-  const supabaseUrl = import.meta.env.SUPABASE_URL;
-  const anonKey = import.meta.env.SUPABASE_ANON_KEY;
+export function getSupabaseClientAnon(runtime?: Record<string, string>): SupabaseClient {
+  // Try runtime env (Cloudflare), then import.meta.env (Node), then process.env
+  const supabaseUrl =
+    runtime?.SUPABASE_URL ||
+    (typeof import.meta !== "undefined" && import.meta.env?.SUPABASE_URL) ||
+    (typeof process !== "undefined" && process.env?.SUPABASE_URL);
+
+  const anonKey =
+    runtime?.SUPABASE_ANON_KEY ||
+    (typeof import.meta !== "undefined" && import.meta.env?.SUPABASE_ANON_KEY) ||
+    (typeof process !== "undefined" && process.env?.SUPABASE_ANON_KEY);
 
   if (!supabaseUrl || !anonKey) {
     throw new Error(
@@ -64,11 +82,20 @@ export function getSupabaseClientAnon(): SupabaseClient {
  * Used for operations that need to respect RLS policies for a specific user
  *
  * @param accessToken - User's JWT access token
+ * @param runtime - Optional runtime environment (for Cloudflare)
  * @returns Supabase client authenticated with user's token
  */
-export function getSupabaseClientForUser(accessToken: string): SupabaseClient {
-  const supabaseUrl = import.meta.env.SUPABASE_URL;
-  const anonKey = import.meta.env.SUPABASE_ANON_KEY;
+export function getSupabaseClientForUser(accessToken: string, runtime?: Record<string, string>): SupabaseClient {
+  // Try runtime env (Cloudflare), then import.meta.env (Node), then process.env
+  const supabaseUrl =
+    runtime?.SUPABASE_URL ||
+    (typeof import.meta !== "undefined" && import.meta.env?.SUPABASE_URL) ||
+    (typeof process !== "undefined" && process.env?.SUPABASE_URL);
+
+  const anonKey =
+    runtime?.SUPABASE_ANON_KEY ||
+    (typeof import.meta !== "undefined" && import.meta.env?.SUPABASE_ANON_KEY) ||
+    (typeof process !== "undefined" && process.env?.SUPABASE_ANON_KEY);
 
   if (!supabaseUrl || !anonKey) {
     throw new Error(
