@@ -24,8 +24,11 @@ import type { ErrorResponse } from "@/types";
  *   - 404: Party not found
  *   - 500: Internal server error
  */
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async ({ params, locals }) => {
   try {
+    // Get runtime environment (for Cloudflare) or undefined (for Node)
+    const runtime = locals.runtime?.env;
+
     // ========================================================================
     // 1. Extract and Validate Path Parameters
     // ========================================================================
@@ -51,7 +54,7 @@ export const GET: APIRoute = async ({ params }) => {
     // 2. Fetch Party from Service
     // ========================================================================
 
-    const partyService = new PartyService();
+    const partyService = new PartyService(runtime);
     const party = await partyService.getPartyById(partyId);
 
     // ========================================================================

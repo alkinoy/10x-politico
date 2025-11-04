@@ -14,11 +14,14 @@ import type { UpdateProfileCommand } from "../../../types";
  * GET /api/profiles/me
  * Retrieve the authenticated user's profile
  */
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, locals }) => {
   try {
+    // Get runtime environment (for Cloudflare) or undefined (for Node)
+    const runtime = locals.runtime?.env;
+
     // Authenticate user
     const authHeader = request.headers.get("Authorization");
-    const userId = await getAuthenticatedUser(authHeader);
+    const userId = await getAuthenticatedUser(authHeader, runtime);
 
     if (!userId) {
       return new Response(
@@ -36,7 +39,7 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     // Fetch profile
-    const profile = await getAuthenticatedProfile(userId);
+    const profile = await getAuthenticatedProfile(userId, runtime);
 
     if (!profile) {
       return new Response(
@@ -78,11 +81,14 @@ export const GET: APIRoute = async ({ request }) => {
  * PATCH /api/profiles/me
  * Update the authenticated user's profile
  */
-export const PATCH: APIRoute = async ({ request }) => {
+export const PATCH: APIRoute = async ({ request, locals }) => {
   try {
+    // Get runtime environment (for Cloudflare) or undefined (for Node)
+    const runtime = locals.runtime?.env;
+
     // Authenticate user
     const authHeader = request.headers.get("Authorization");
-    const userId = await getAuthenticatedUser(authHeader);
+    const userId = await getAuthenticatedUser(authHeader, runtime);
 
     if (!userId) {
       return new Response(
@@ -121,7 +127,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     // Update profile
     try {
-      const updatedProfile = await updateProfile(userId, command);
+      const updatedProfile = await updateProfile(userId, command, runtime);
 
       if (!updatedProfile) {
         return new Response(

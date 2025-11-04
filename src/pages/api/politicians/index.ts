@@ -30,8 +30,11 @@ import type { PoliticiansQueryParams, CreatePoliticianCommand, ErrorResponse } f
  *   - 400: Invalid query parameters
  *   - 500: Internal server error
  */
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, locals }) => {
   try {
+    // Get runtime environment (for Cloudflare) or undefined (for Node)
+    const runtime = locals.runtime?.env;
+
     // ========================================================================
     // 1. Extract Query Parameters
     // ========================================================================
@@ -167,7 +170,7 @@ export const GET: APIRoute = async ({ url }) => {
     // 4. Fetch Politicians from Service
     // ========================================================================
 
-    const politicianService = new PoliticianService();
+    const politicianService = new PoliticianService(runtime);
     const result = await politicianService.getAllPoliticians(queryParams);
 
     // ========================================================================
@@ -223,14 +226,17 @@ export const GET: APIRoute = async ({ url }) => {
  *   - 404: Party not found
  *   - 500: Internal server error
  */
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
+    // Get runtime environment (for Cloudflare) or undefined (for Node)
+    const runtime = locals.runtime?.env;
+
     // ========================================================================
     // 1. Authenticate User
     // ========================================================================
 
     const authHeader = request.headers.get("Authorization");
-    const authenticatedUserId = await getAuthenticatedUser(authHeader);
+    const authenticatedUserId = await getAuthenticatedUser(authHeader, runtime);
 
     if (!authenticatedUserId) {
       const errorResponse: ErrorResponse = {
@@ -368,7 +374,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Verify party exists
-    const partyService = new PartyService();
+    const partyService = new PartyService(runtime);
     const partyExists = await partyService.verifyPartyExists(body.party_id);
 
     if (!partyExists) {
@@ -390,7 +396,7 @@ export const POST: APIRoute = async ({ request }) => {
     // 4. Create Politician
     // ========================================================================
 
-    const politicianService = new PoliticianService();
+    const politicianService = new PoliticianService(runtime);
     const politician = await politicianService.createPolitician(body);
 
     // ========================================================================

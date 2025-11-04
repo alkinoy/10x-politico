@@ -9,9 +9,9 @@ import type { PartyDTO, PartiesQueryParams, ListResponse, CreatePartyCommand } f
 export class PartyService {
   private supabase;
 
-  constructor() {
+  constructor(runtime?: Record<string, string>) {
     // Use service role key for server-side operations
-    this.supabase = getSupabaseClient();
+    this.supabase = getSupabaseClient(runtime);
   }
 
   /**
