@@ -19,6 +19,7 @@ SpeechKarma is a web application that captures and publishes public statements m
 
 When introducing changes to the project, always follow the directory structure below:
 
+- `./.md` - All documentation files (*.md) belong here
 - `./src` - source code
 - `./src/layouts` - Astro layouts
 - `./src/pages` - Astro pages
@@ -33,6 +34,8 @@ When introducing changes to the project, always follow the directory structure b
 - `./public` - public assets
 
 When modifying the directory structure, always update this section.
+
+**Note:** All markdown documentation files (implementation summaries, API documentation, testing guides, etc.) should be stored in the `./.md` directory to keep the root directory clean and organized.
 
 ## Coding practices
 
