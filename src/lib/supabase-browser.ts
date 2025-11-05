@@ -14,13 +14,14 @@ import type { Database } from "@/db/database.types";
  * @returns Supabase client instance for browser-side auth operations
  */
 export function createBrowserSupabaseClient() {
-  // Use PUBLIC_ prefix for variables available in the browser
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  // Try PUBLIC_ prefix first (standard Astro pattern)
+  // Fall back to non-prefixed if PUBLIC_ not available (Cloudflare workaround)
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || import.meta.env.SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      "Missing Supabase environment variables. Please ensure PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY are set."
+      "Missing Supabase environment variables. Please ensure PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY are set (or SUPABASE_URL and SUPABASE_ANON_KEY)."
     );
   }
 
