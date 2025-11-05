@@ -17,6 +17,9 @@ import { getSupabaseClientAnon } from "@/db/client";
 import { StatementService } from "@/lib/services/statement-service";
 import type { StatementDetailDTO } from "@/types";
 
+// Get runtime environment for Cloudflare
+const runtime = Astro.locals.runtime?.env;
+
 // Check if user is authenticated
 const token = Astro.cookies.get("sb-access-token")?.value;
 const statementId = Astro.params.id;
@@ -27,7 +30,7 @@ if (!token) {
 }
 
 // Verify token is valid
-const supabase = getSupabaseClientAnon();
+const supabase = getSupabaseClientAnon(runtime);
 const {
   data: { user },
   error: authError,
@@ -48,7 +51,7 @@ try {
     fetchError = "Statement ID is required";
     errorType = "not_found";
   } else {
-    const statementService = new StatementService();
+    const statementService = new StatementService(runtime);
     statement = await statementService.getStatementById(statementId, user.id);
 
     if (!statement) {

@@ -20,10 +20,13 @@ export const prerender = false;
  * Error Response:
  *   - 500: Internal server error (still redirects to home page)
  */
-export const POST: APIRoute = async ({ cookies, redirect }) => {
+export const POST: APIRoute = async ({ cookies, redirect, locals }) => {
   try {
+    // Get runtime environment for Cloudflare
+    const runtime = locals.runtime?.env;
+    
     // Create Supabase client
-    const supabase = getSupabaseClientAnon();
+    const supabase = getSupabaseClientAnon(runtime);
 
     // Sign out the user
     const { error } = await supabase.auth.signOut();

@@ -11,6 +11,9 @@ import AddPoliticianForm from "@/components/politician/AddPoliticianForm";
 import { getSupabaseClientAnon, getSupabaseClient } from "@/db/client";
 import type { PartyDTO } from "@/types";
 
+// Get runtime environment for Cloudflare
+const runtime = Astro.locals.runtime?.env;
+
 // Check if user is authenticated
 const token = Astro.cookies.get("sb-access-token")?.value;
 
@@ -20,7 +23,7 @@ if (!token) {
 }
 
 // Verify token is valid
-const supabaseAuth = getSupabaseClientAnon();
+const supabaseAuth = getSupabaseClientAnon(runtime);
 const {
   data: { user },
   error: authError,
@@ -32,7 +35,7 @@ if (!user || authError) {
 }
 
 // Fetch all parties for the party selector (using service role for data access)
-const supabase = getSupabaseClient();
+const supabase = getSupabaseClient(runtime);
 const { data: partiesData, error: partiesError } = await supabase
   .from("parties")
   .select("*")

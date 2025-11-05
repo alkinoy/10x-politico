@@ -14,6 +14,9 @@ import PoliticiansDirectory from "@/components/PoliticiansDirectory";
 import { PoliticianService } from "@/lib/services/politician-service";
 import type { PaginatedResponse, PoliticianDTO } from "@/types";
 
+// Get runtime environment for Cloudflare
+const runtime = Astro.locals.runtime?.env;
+
 // Extract query parameters for search and pagination
 const url = new URL(Astro.request.url);
 const searchParam = url.searchParams.get("search");
@@ -31,7 +34,7 @@ let initialData: PaginatedResponse<PoliticianDTO> | null = null;
 let fetchError: string | null = null;
 
 try {
-  const politicianService = new PoliticianService();
+  const politicianService = new PoliticianService(runtime);
   initialData = await politicianService.getAllPoliticians({
     page,
     limit,

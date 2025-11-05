@@ -16,6 +16,9 @@ import { getSupabaseClientAnon } from "@/db/client";
 import { PoliticianService } from "@/lib/services/politician-service";
 import type { PoliticianDTO } from "@/types";
 
+// Get runtime environment for Cloudflare
+const runtime = Astro.locals.runtime?.env;
+
 // Check if user is authenticated
 const token = Astro.cookies.get("sb-access-token")?.value;
 
@@ -25,7 +28,7 @@ if (!token) {
 }
 
 // Verify token is valid
-const supabase = getSupabaseClientAnon();
+const supabase = getSupabaseClientAnon(runtime);
 const {
   data: { user },
   error: authError,
@@ -42,7 +45,7 @@ let politicians: PoliticianDTO[] = [];
 let fetchError: string | null = null;
 
 try {
-  const politicianService = new PoliticianService();
+  const politicianService = new PoliticianService(runtime);
   const result = await politicianService.getAllPoliticians({
     page: 1,
     limit: 1000,

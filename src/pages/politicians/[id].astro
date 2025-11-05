@@ -11,9 +11,13 @@
 
 import Layout from "@/layouts/Layout.astro";
 import PoliticianDetail from "@/components/politician/PoliticianDetail";
+import { getSupabaseClientAnon } from "@/db/client";
 import { PoliticianService } from "@/lib/services/politician-service";
 import { StatementService } from "@/lib/services/statement-service";
 import type { PoliticianDetailDTO, PaginatedResponse, StatementDetailDTO } from "@/types";
+
+// Get runtime environment for Cloudflare
+const runtime = Astro.locals.runtime?.env;
 
 // Extract politician ID from route params
 const { id } = Astro.params;
@@ -41,15 +45,22 @@ const page = pageParam ? Math.max(1, parseInt(pageParam, 10)) : 1;
 const limit = 50; // Default statements per page
 
 // Get current user from session for permission checks
-const session = Astro.locals.session;
-const currentUserId = session?.user?.id || null;
+const token = Astro.cookies.get("sb-access-token")?.value;
+let currentUserId: string | null = null;
+if (token) {
+  const supabaseAuth = getSupabaseClientAnon(runtime);
+  const {
+    data: { user },
+  } = await supabaseAuth.auth.getUser(token);
+  currentUserId = user?.id || null;
+}
 
 // Fetch politician profile
 let politician: PoliticianDetailDTO | null = null;
 let politicianError: string | null = null;
 
 try {
-  const politicianService = new PoliticianService();
+  const politicianService = new PoliticianService(runtime);
   politician = await politicianService.getPoliticianById(id);
 
   if (!politician) {
@@ -67,7 +78,7 @@ let statementsError: string | null = null;
 
 if (politician) {
   try {
-    const statementService = new StatementService();
+    const statementService = new StatementService(runtime);
     statements = await statementService.getStatementsForPolitician(
       id,
       {
