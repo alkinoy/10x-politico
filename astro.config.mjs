@@ -33,19 +33,6 @@ export default defineConfig({
   server: { port: 4321 },
   vite: {
     plugins: [tailwindcss()],
-    define: {
-      // Inject PUBLIC_ env vars at build time for client-side access
-      // eslint-disable-next-line no-undef
-      "import.meta.env.PUBLIC_SUPABASE_URL": JSON.stringify(
-        // eslint-disable-next-line no-undef
-        process.env.PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || ""
-      ),
-      // eslint-disable-next-line no-undef
-      "import.meta.env.PUBLIC_SUPABASE_ANON_KEY": JSON.stringify(
-        // eslint-disable-next-line no-undef
-        process.env.PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ""
-      ),
-    },
   },
   adapter: getAdapter(),
 });

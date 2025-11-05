@@ -14,20 +14,19 @@ import type { Database } from "@/db/database.types";
  * @returns Supabase client instance for browser-side auth operations
  */
 export function createBrowserSupabaseClient() {
-  // Try PUBLIC_ prefix first (standard Astro pattern)
-  // Fall back to non-prefixed if PUBLIC_ not available (Cloudflare workaround)
-  // On server-side (Cloudflare), these will be undefined but that's ok - they'll be available client-side
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || import.meta.env.SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY;
+  // Use PUBLIC_ prefixed vars - Astro automatically includes these in client bundle
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
-  // Only throw error if we're actually in a browser context
+  // Only throw error if we're in browser context and vars are missing
   if (typeof window !== "undefined" && (!supabaseUrl || !supabaseAnonKey)) {
+    console.error("Available env vars:", Object.keys(import.meta.env));
     throw new Error(
-      "Missing Supabase environment variables. Please ensure PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY are set (or SUPABASE_URL and SUPABASE_ANON_KEY)."
+      "Missing Supabase environment variables. PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY must be set at build time."
     );
   }
 
-  // For SSR, use placeholder values - the real values will be used client-side
+  // For SSR, use placeholder values - will be replaced client-side
   const url = supabaseUrl || "https://placeholder.supabase.co";
   const key = supabaseAnonKey || "placeholder-key";
 
