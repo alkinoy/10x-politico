@@ -66,7 +66,11 @@ jobs:
         run: npm ci
       
       - name: Build application
-        run: npm run build
+        run: |
+          echo "Building with env vars..."
+          echo "PUBLIC_SUPABASE_URL is set: $([ -n "$PUBLIC_SUPABASE_URL" ] && echo 'yes' || echo 'no')"
+          echo "PUBLIC_SUPABASE_ANON_KEY is set: $([ -n "$PUBLIC_SUPABASE_ANON_KEY" ] && echo 'yes' || echo 'no')"
+          npm run build
       
       - name: Verify build output
         run: |
@@ -79,6 +83,14 @@ jobs:
           
           if [ ! -d "dist/client" ]; then
             echo "Warning: client directory not found in dist/"
+          fi
+          
+          # Check if env vars are in the bundle
+          echo "Checking if Supabase URL is in client bundle..."
+          if grep -r "kiinwpyxtwqbxmyriloo" dist/_astro/ 2>/dev/null; then
+            echo "✓ Supabase URL found in bundle"
+          else
+            echo "✗ WARNING: Supabase URL NOT found in bundle!"
           fi
           
           echo "✓ Build verification complete"
