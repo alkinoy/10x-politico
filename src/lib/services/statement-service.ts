@@ -20,9 +20,9 @@ import type {
 export class StatementService {
   private supabase;
 
-  constructor(runtime?: Record<string, string>) {
+  constructor() {
     // Use service role key for server-side operations
-    this.supabase = getSupabaseClient(runtime);
+    this.supabase = getSupabaseClient();
   }
 
   /**

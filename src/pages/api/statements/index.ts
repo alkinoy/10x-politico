@@ -28,11 +28,8 @@ import type { StatementsQueryParams, CreateStatementCommand, ErrorResponse } fro
  *   - 400: Invalid query parameters
  *   - 500: Internal server error
  */
-export const GET: APIRoute = async ({ url, locals }) => {
+export const GET: APIRoute = async ({ url }) => {
   try {
-    // Get runtime environment (for Cloudflare) or undefined (for Node)
-    const runtime = locals.runtime?.env;
-
     // ========================================================================
     // 1. Extract Query Parameters
     // ========================================================================
@@ -165,7 +162,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
     // 5. Fetch Statements from Service
     // ========================================================================
 
-    const statementService = new StatementService(runtime);
+    const statementService = new StatementService();
     const result = await statementService.getAllStatements(queryParams);
 
     // ========================================================================
@@ -220,17 +217,14 @@ export const GET: APIRoute = async ({ url, locals }) => {
  *   - 404: Politician not found
  *   - 500: Internal server error
  */
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
-    // Get runtime environment (for Cloudflare) or undefined (for Node)
-    const runtime = locals.runtime?.env;
-
     // ========================================================================
     // 1. Authenticate User
     // ========================================================================
 
     const authHeader = request.headers.get("Authorization");
-    const authenticatedUserId = await getAuthenticatedUser(authHeader, runtime);
+    const authenticatedUserId = await getAuthenticatedUser(authHeader);
 
     if (!authenticatedUserId) {
       const errorResponse: ErrorResponse = {
@@ -388,7 +382,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // 4. Create Statement
     // ========================================================================
 
-    const statementService = new StatementService(runtime);
+    const statementService = new StatementService();
 
     try {
       const statement = await statementService.createStatement(body, authenticatedUserId);

@@ -15,11 +15,8 @@ import { getPublicProfile } from "../../../lib/services/profile-service";
  * Public endpoint - no authentication required
  * Returns minimal profile information (id, display_name, created_at)
  */
-export const GET: APIRoute = async ({ params, locals }) => {
+export const GET: APIRoute = async ({ params }) => {
   try {
-    // Get runtime environment (for Cloudflare) or undefined (for Node)
-    const runtime = locals.runtime?.env;
-
     const { id } = params;
 
     // Validate profile ID
@@ -43,7 +40,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     }
 
     // Fetch public profile
-    const profile = await getPublicProfile(id, runtime);
+    const profile = await getPublicProfile(id);
 
     if (!profile) {
       return new Response(

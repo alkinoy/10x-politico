@@ -24,11 +24,8 @@ import type { PartiesQueryParams, CreatePartyCommand, ErrorResponse } from "@/ty
  *   - 400: Invalid query parameters
  *   - 500: Internal server error
  */
-export const GET: APIRoute = async ({ url, locals }) => {
+export const GET: APIRoute = async ({ url }) => {
   try {
-    // Get runtime environment (for Cloudflare) or undefined (for Node)
-    const runtime = locals.runtime?.env;
-
     // ========================================================================
     // 1. Extract Query Parameters
     // ========================================================================
@@ -88,7 +85,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
     // 4. Fetch Parties from Service
     // ========================================================================
 
-    const partyService = new PartyService(runtime);
+    const partyService = new PartyService();
     const result = await partyService.getAllParties(queryParams);
 
     // ========================================================================
@@ -143,17 +140,14 @@ export const GET: APIRoute = async ({ url, locals }) => {
  *   - 401: Authentication required
  *   - 500: Internal server error
  */
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
-    // Get runtime environment (for Cloudflare) or undefined (for Node)
-    const runtime = locals.runtime?.env;
-
     // ========================================================================
     // 1. Authenticate User
     // ========================================================================
 
     const authHeader = request.headers.get("Authorization");
-    const authenticatedUserId = await getAuthenticatedUser(authHeader, runtime);
+    const authenticatedUserId = await getAuthenticatedUser(authHeader);
 
     if (!authenticatedUserId) {
       const errorResponse: ErrorResponse = {
@@ -262,7 +256,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // 4. Create Party
     // ========================================================================
 
-    const partyService = new PartyService(runtime);
+    const partyService = new PartyService();
     const party = await partyService.createParty(body);
 
     // ========================================================================
