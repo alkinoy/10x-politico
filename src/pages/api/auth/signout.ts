@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ cookies, redirect, locals }) => {
   try {
     // Get runtime environment for Cloudflare
     const runtime = locals.runtime?.env;
-    
+
     // Create Supabase client
     const supabase = getSupabaseClientAnon(runtime);
 

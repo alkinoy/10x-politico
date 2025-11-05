@@ -22,7 +22,7 @@ vi.mock("@/db/client", () => ({
 import { POST } from "./signout";
 
 // Type for mocked APIContext
-type MockAPIContext = Pick<APIContext, "cookies" | "redirect">;
+type MockAPIContext = Pick<APIContext, "cookies" | "redirect" | "locals">;
 
 describe("POST /api/auth/signout", () => {
   let mockCookies: {
@@ -48,6 +48,11 @@ describe("POST /api/auth/signout", () => {
     mockContext = {
       cookies: mockCookies,
       redirect: mockRedirect,
+      locals: {
+        runtime: {
+          env: {},
+        },
+      },
     };
   });
 

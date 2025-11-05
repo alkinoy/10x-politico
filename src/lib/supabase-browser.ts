@@ -18,12 +18,6 @@ export function createBrowserSupabaseClient() {
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
-  // Debug logging
-  if (typeof window !== "undefined") {
-    console.log("PUBLIC_SUPABASE_URL:", supabaseUrl);
-    console.log("PUBLIC_SUPABASE_ANON_KEY:", supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : "undefined");
-  }
-
   // Only throw error if we're in browser context and vars are missing
   if (typeof window !== "undefined" && (!supabaseUrl || !supabaseAnonKey)) {
     console.error("Available env vars:", Object.keys(import.meta.env));
