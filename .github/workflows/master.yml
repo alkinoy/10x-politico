@@ -1,7 +1,8 @@
 name: Deploy to Cloudflare Pages
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [master]
 
 jobs:
   lint:
@@ -66,7 +67,7 @@ jobs:
         run: npm ci
       
       - name: Build application
-        run: PLATFORM=cloudflare npm run build
+        run: npm run build
       
       - name: Verify build output
         run: |
