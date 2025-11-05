@@ -70,6 +70,7 @@ describe("POST /api/auth/signout", () => {
 
   it("should redirect to home page even if sign-out fails", async () => {
     // Arrange
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
     const { getSupabaseClientAnon } = await import("@/db/client");
     vi.mocked(getSupabaseClientAnon).mockReturnValue({
       auth: {
@@ -85,10 +86,13 @@ describe("POST /api/auth/signout", () => {
 
     // Assert
     expect(mockRedirect).toHaveBeenCalledWith("/", 303);
+    expect(consoleErrorSpy).toHaveBeenCalledWith("Error signing out:", expect.any(Error));
+    consoleErrorSpy.mockRestore();
   });
 
   it("should handle unexpected errors gracefully", async () => {
     // Arrange
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
     const { getSupabaseClientAnon } = await import("@/db/client");
     vi.mocked(getSupabaseClientAnon).mockImplementation(() => {
       throw new Error("Unexpected error");
@@ -99,5 +103,7 @@ describe("POST /api/auth/signout", () => {
 
     // Assert
     expect(mockRedirect).toHaveBeenCalledWith("/", 303);
+    expect(consoleErrorSpy).toHaveBeenCalledWith("Unexpected error during sign-out:", expect.any(Error));
+    consoleErrorSpy.mockRestore();
   });
 });
