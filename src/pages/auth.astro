@@ -3,10 +3,13 @@ import Layout from "@/layouts/Layout.astro";
 import AuthenticationContainer from "@/components/AuthenticationContainer";
 import { getSupabaseClientAnon } from "@/db/client";
 
+// Get runtime environment (Cloudflare) or use undefined (Node.js)
+const runtime = Astro.locals.runtime?.env;
+
 // Check if user is already authenticated
 const token = Astro.cookies.get("sb-access-token")?.value;
 if (token) {
-  const supabase = getSupabaseClientAnon();
+  const supabase = getSupabaseClientAnon(runtime);
   const {
     data: { user },
     error,

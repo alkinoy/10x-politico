@@ -16,8 +16,11 @@ import type { ProfileDTO, PublicProfileDTO, UpdateProfileCommand } from "../../t
  * @param userId - The authenticated user's ID
  * @returns The user's complete profile or null if not found
  */
-export async function getAuthenticatedProfile(userId: string): Promise<ProfileDTO | null> {
-  const supabase = getSupabaseClient();
+export async function getAuthenticatedProfile(
+  userId: string,
+  runtime?: Record<string, string>
+): Promise<ProfileDTO | null> {
+  const supabase = getSupabaseClient(runtime);
 
   const { data: profile, error } = await supabase
     .from("profiles")
@@ -50,8 +53,12 @@ export async function getAuthenticatedProfile(userId: string): Promise<ProfileDT
  * @returns The updated profile or null if not found
  * @throws Error if validation fails
  */
-export async function updateProfile(userId: string, command: UpdateProfileCommand): Promise<ProfileDTO | null> {
-  const supabase = getSupabaseClient();
+export async function updateProfile(
+  userId: string,
+  command: UpdateProfileCommand,
+  runtime?: Record<string, string>
+): Promise<ProfileDTO | null> {
+  const supabase = getSupabaseClient(runtime);
 
   // Validate display_name if provided
   if (command.display_name !== undefined) {
@@ -75,7 +82,7 @@ export async function updateProfile(userId: string, command: UpdateProfileComman
 
   // If no updates, just return current profile
   if (Object.keys(updates).length === 0) {
-    return getAuthenticatedProfile(userId);
+    return getAuthenticatedProfile(userId, runtime);
   }
 
   // Update the profile
@@ -109,8 +116,11 @@ export async function updateProfile(userId: string, command: UpdateProfileComman
  * @param userId - The user ID to fetch
  * @returns The public profile or null if not found
  */
-export async function getPublicProfile(userId: string): Promise<PublicProfileDTO | null> {
-  const supabase = getSupabaseClient();
+export async function getPublicProfile(
+  userId: string,
+  runtime?: Record<string, string>
+): Promise<PublicProfileDTO | null> {
+  const supabase = getSupabaseClient(runtime);
 
   const { data: profile, error } = await supabase
     .from("profiles")
@@ -135,8 +145,8 @@ export async function getPublicProfile(userId: string): Promise<PublicProfileDTO
  * @param userId - The user ID to check
  * @returns true if profile exists, false otherwise
  */
-export async function verifyProfileExists(userId: string): Promise<boolean> {
-  const supabase = getSupabaseClient();
+export async function verifyProfileExists(userId: string, runtime?: Record<string, string>): Promise<boolean> {
+  const supabase = getSupabaseClient(runtime);
 
   const { data, error } = await supabase.from("profiles").select("id").eq("id", userId).single();
 

@@ -10,9 +10,13 @@ import { getSupabaseClientAnon } from "@/db/client";
  * Returns the authenticated user ID if valid, null otherwise
  *
  * @param authHeader - Authorization header value (Bearer <token>)
+ * @param runtime - Optional runtime environment (for Cloudflare Workers/Pages)
  * @returns User ID if authenticated, null otherwise
  */
-export async function getAuthenticatedUser(authHeader?: string | null): Promise<string | null> {
+export async function getAuthenticatedUser(
+  authHeader?: string | null,
+  runtime?: Record<string, string>
+): Promise<string | null> {
   // Check if auth header exists and has Bearer format
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;
@@ -27,7 +31,7 @@ export async function getAuthenticatedUser(authHeader?: string | null): Promise<
     }
 
     // Create Supabase client with anon key for token validation
-    const supabase = getSupabaseClientAnon();
+    const supabase = getSupabaseClientAnon(runtime);
 
     // Validate token and get user
     const {

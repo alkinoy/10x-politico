@@ -36,8 +36,9 @@ import type { PoliticianTimelineQueryParams, ErrorResponse } from "@/types";
  *   - 404: Politician not found
  *   - 500: Internal server error
  */
-export const GET: APIRoute = async ({ params, request, url }) => {
+export const GET: APIRoute = async ({ params, request, url, locals }) => {
   try {
+    const runtime = locals.runtime?.env;
     // ========================================================================
     // 1. Extract and Validate Path Parameters
     // ========================================================================
@@ -180,13 +181,13 @@ export const GET: APIRoute = async ({ params, request, url }) => {
     // ========================================================================
 
     const authHeader = request.headers.get("Authorization");
-    const authenticatedUserId = await getAuthenticatedUser(authHeader);
+    const authenticatedUserId = await getAuthenticatedUser(authHeader, runtime);
 
     // ========================================================================
     // 5. Verify Politician Exists
     // ========================================================================
 
-    const statementService = new StatementService();
+    const statementService = new StatementService(runtime);
     const politicianExists = await statementService.verifyPoliticianExists(politicianId);
 
     if (!politicianExists) {

@@ -15,11 +15,14 @@ export type SupabaseClient = ReturnType<typeof createClient<Database>>;
  * Creates a Supabase client with service role key
  * Used for server-side operations that bypass RLS policies
  *
+ * @param runtime - Optional runtime environment (for Cloudflare Workers/Pages)
  * @returns Supabase client with service role privileges
  */
-export function getSupabaseClient(): SupabaseClient {
-  const supabaseUrl = import.meta.env.SUPABASE_URL;
-  const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+export function getSupabaseClient(runtime?: Record<string, string>): SupabaseClient {
+  // Cloudflare Workers/Pages: use runtime.env
+  // Node.js/dev: use import.meta.env
+  const supabaseUrl = runtime?.SUPABASE_URL || import.meta.env.SUPABASE_URL;
+  const serviceRoleKey = runtime?.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error(
@@ -39,11 +42,14 @@ export function getSupabaseClient(): SupabaseClient {
  * Creates a Supabase client with anon key
  * Used for client-side operations and authentication
  *
+ * @param runtime - Optional runtime environment (for Cloudflare Workers/Pages)
  * @returns Supabase client with anon key
  */
-export function getSupabaseClientAnon(): SupabaseClient {
-  const supabaseUrl = import.meta.env.SUPABASE_URL;
-  const anonKey = import.meta.env.SUPABASE_ANON_KEY;
+export function getSupabaseClientAnon(runtime?: Record<string, string>): SupabaseClient {
+  // Cloudflare Workers/Pages: use runtime.env
+  // Node.js/dev: use import.meta.env
+  const supabaseUrl = runtime?.SUPABASE_URL || import.meta.env.SUPABASE_URL;
+  const anonKey = runtime?.SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !anonKey) {
     throw new Error(
@@ -64,11 +70,14 @@ export function getSupabaseClientAnon(): SupabaseClient {
  * Used for operations that need to respect RLS policies for a specific user
  *
  * @param accessToken - User's JWT access token
+ * @param runtime - Optional runtime environment (for Cloudflare Workers/Pages)
  * @returns Supabase client authenticated with user's token
  */
-export function getSupabaseClientForUser(accessToken: string): SupabaseClient {
-  const supabaseUrl = import.meta.env.SUPABASE_URL;
-  const anonKey = import.meta.env.SUPABASE_ANON_KEY;
+export function getSupabaseClientForUser(accessToken: string, runtime?: Record<string, string>): SupabaseClient {
+  // Cloudflare Workers/Pages: use runtime.env
+  // Node.js/dev: use import.meta.env
+  const supabaseUrl = runtime?.SUPABASE_URL || import.meta.env.SUPABASE_URL;
+  const anonKey = runtime?.SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !anonKey) {
     throw new Error(

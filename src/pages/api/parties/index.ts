@@ -24,8 +24,9 @@ import type { PartiesQueryParams, CreatePartyCommand, ErrorResponse } from "@/ty
  *   - 400: Invalid query parameters
  *   - 500: Internal server error
  */
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, locals }) => {
   try {
+    const runtime = locals.runtime?.env;
     // ========================================================================
     // 1. Extract Query Parameters
     // ========================================================================
@@ -85,7 +86,7 @@ export const GET: APIRoute = async ({ url }) => {
     // 4. Fetch Parties from Service
     // ========================================================================
 
-    const partyService = new PartyService();
+    const partyService = new PartyService(runtime);
     const result = await partyService.getAllParties(queryParams);
 
     // ========================================================================
@@ -140,14 +141,15 @@ export const GET: APIRoute = async ({ url }) => {
  *   - 401: Authentication required
  *   - 500: Internal server error
  */
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
+    const runtime = locals.runtime?.env;
     // ========================================================================
     // 1. Authenticate User
     // ========================================================================
 
     const authHeader = request.headers.get("Authorization");
-    const authenticatedUserId = await getAuthenticatedUser(authHeader);
+    const authenticatedUserId = await getAuthenticatedUser(authHeader, runtime);
 
     if (!authenticatedUserId) {
       const errorResponse: ErrorResponse = {
@@ -256,7 +258,7 @@ export const POST: APIRoute = async ({ request }) => {
     // 4. Create Party
     // ========================================================================
 
-    const partyService = new PartyService();
+    const partyService = new PartyService(runtime);
     const party = await partyService.createParty(body);
 
     // ========================================================================

@@ -29,8 +29,9 @@ import type { ErrorResponse, UpdateStatementCommand } from "@/types";
  *   - 404: Statement not found
  *   - 500: Internal server error
  */
-export const GET: APIRoute = async ({ params, request }) => {
+export const GET: APIRoute = async ({ params, request, locals }) => {
   try {
+    const runtime = locals.runtime?.env;
     // ========================================================================
     // 1. Extract and Validate Path Parameters
     // ========================================================================
@@ -57,13 +58,13 @@ export const GET: APIRoute = async ({ params, request }) => {
     // ========================================================================
 
     const authHeader = request.headers.get("Authorization");
-    const authenticatedUserId = await getAuthenticatedUser(authHeader);
+    const authenticatedUserId = await getAuthenticatedUser(authHeader, runtime);
 
     // ========================================================================
     // 3. Fetch Statement from Service
     // ========================================================================
 
-    const statementService = new StatementService();
+    const statementService = new StatementService(runtime);
     const statement = await statementService.getStatementById(statementId, authenticatedUserId);
 
     // ========================================================================
@@ -144,8 +145,9 @@ export const GET: APIRoute = async ({ params, request }) => {
  *   - 404: Statement not found
  *   - 500: Internal server error
  */
-export const PATCH: APIRoute = async ({ params, request }) => {
+export const PATCH: APIRoute = async ({ params, request, locals }) => {
   try {
+    const runtime = locals.runtime?.env;
     // ========================================================================
     // 1. Extract and Validate Path Parameters
     // ========================================================================
@@ -172,7 +174,7 @@ export const PATCH: APIRoute = async ({ params, request }) => {
     // ========================================================================
 
     const authHeader = request.headers.get("Authorization");
-    const authenticatedUserId = await getAuthenticatedUser(authHeader);
+    const authenticatedUserId = await getAuthenticatedUser(authHeader, runtime);
 
     if (!authenticatedUserId) {
       const errorResponse: ErrorResponse = {
@@ -316,7 +318,7 @@ export const PATCH: APIRoute = async ({ params, request }) => {
     // 5. Update Statement
     // ========================================================================
 
-    const statementService = new StatementService();
+    const statementService = new StatementService(runtime);
 
     try {
       const updatedStatement = await statementService.updateStatement(statementId, body, authenticatedUserId);
@@ -417,8 +419,9 @@ export const PATCH: APIRoute = async ({ params, request }) => {
  *   - 404: Statement not found
  *   - 500: Internal server error
  */
-export const DELETE: APIRoute = async ({ params, request }) => {
+export const DELETE: APIRoute = async ({ params, request, locals }) => {
   try {
+    const runtime = locals.runtime?.env;
     // ========================================================================
     // 1. Extract and Validate Path Parameters
     // ========================================================================
@@ -445,7 +448,7 @@ export const DELETE: APIRoute = async ({ params, request }) => {
     // ========================================================================
 
     const authHeader = request.headers.get("Authorization");
-    const authenticatedUserId = await getAuthenticatedUser(authHeader);
+    const authenticatedUserId = await getAuthenticatedUser(authHeader, runtime);
 
     if (!authenticatedUserId) {
       const errorResponse: ErrorResponse = {
@@ -465,7 +468,7 @@ export const DELETE: APIRoute = async ({ params, request }) => {
     // 3. Delete Statement
     // ========================================================================
 
-    const statementService = new StatementService();
+    const statementService = new StatementService(runtime);
 
     try {
       const deletedStatement = await statementService.deleteStatement(statementId, authenticatedUserId);
