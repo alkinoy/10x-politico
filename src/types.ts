@@ -523,4 +523,6 @@ export interface ChatCompletionConfig {
   responseFormat?: ResponseFormat;
   /** Optional: Model parameters */
   parameters?: ModelParameters;
+  /** Optional: Runtime environment (for Cloudflare Workers) */
+  runtime?: Record<string, string>;
 }

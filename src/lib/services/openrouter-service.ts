@@ -31,14 +31,24 @@ const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 /**
  * Get OpenRouter API key from environment or parameter
  * @param providedKey - Optional API key passed directly
+ * @param runtime - Optional runtime environment (for Cloudflare Workers)
  * @throws OpenRouterAuthError if API key is not configured
  */
-function getApiKey(providedKey?: string): string {
-  // Try provided key first, then import.meta.env, then process.env (for Node adapter)
+function getApiKey(providedKey?: string, runtime?: Record<string, string>): string {
+  // Try provided key first, then runtime, then import.meta.env, then process.env
   const apiKey =
     providedKey ||
+    runtime?.OPENROUTER_API_KEY ||
     (typeof import.meta !== "undefined" && import.meta.env?.OPENROUTER_API_KEY) ||
     (typeof process !== "undefined" && process.env?.OPENROUTER_API_KEY);
+
+  console.log("🔑 OpenRouter API Key Check:", {
+    hasProvidedKey: !!providedKey,
+    hasRuntimeKey: !!runtime?.OPENROUTER_API_KEY,
+    hasImportMetaKey: typeof import.meta !== "undefined" ? !!import.meta.env?.OPENROUTER_API_KEY : false,
+    hasProcessEnvKey: typeof process !== "undefined" ? !!process.env?.OPENROUTER_API_KEY : false,
+    finalKeyFound: !!apiKey,
+  });
 
   if (!apiKey) {
     throw new OpenRouterAuthError("OPENROUTER_API_KEY environment variable is not set");
@@ -286,20 +296,24 @@ function handleApiError(status: number, body: unknown, model: string): never {
  */
 async function makeApiRequest(
   request: OpenRouterChatRequest,
-  providedApiKey?: string
+  providedApiKey?: string,
+  runtime?: Record<string, string>
 ): Promise<OpenRouterChatResponse> {
-  const apiKey = getApiKey(providedApiKey);
+  const apiKey = getApiKey(providedApiKey, runtime);
 
   try {
+    const siteUrl = 
+      runtime?.SITE_URL ||
+      (typeof import.meta !== "undefined" && import.meta.env?.SITE_URL) ||
+      (typeof process !== "undefined" && process.env?.SITE_URL) ||
+      "http://localhost:4321";
+
     const response = await fetch(OPENROUTER_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer":
-          (typeof import.meta !== "undefined" && import.meta.env?.SITE_URL) ||
-          (typeof process !== "undefined" && process.env?.SITE_URL) ||
-          "http://localhost:4321",
+        "HTTP-Referer": siteUrl,
         "X-Title": "SpeechKarma",
       },
       body: JSON.stringify(request),
@@ -455,8 +469,12 @@ export async function chatCompletion<T = string>(
   // Build request
   const request = buildRequest(config);
 
-  // Make API request
-  const response = await makeApiRequest(request, apiKey);
+  console.log("🚀 OpenRouter: Making API request...");
+
+  // Make API request (pass runtime from config)
+  const response = await makeApiRequest(request, apiKey, config.runtime);
+
+  console.log("✅ OpenRouter: API request successful");
 
   // Extract and return result
   const expectJson = !!config.responseFormat;

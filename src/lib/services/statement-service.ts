@@ -19,8 +19,11 @@ import type {
 
 export class StatementService {
   private supabase;
+  private runtime?: Record<string, string>;
 
   constructor(runtime?: Record<string, string>) {
+    // Store runtime for environment variable access
+    this.runtime = runtime;
     // Use service role key for server-side operations
     this.supabase = getSupabaseClient(runtime);
   }
@@ -30,9 +33,25 @@ export class StatementService {
    * @returns true if USE_AI_SUMMARY is set to 'true'
    */
   private isAiSummaryEnabled(): boolean {
-    // Use process.env directly for Node adapter
-    const useAiSummary = process.env.USE_AI_SUMMARY;
-    return useAiSummary === "true";
+    // Cloudflare Workers: use runtime.env
+    // Node.js/dev: use import.meta.env or process.env
+    const useAiSummary = 
+      this.runtime?.USE_AI_SUMMARY || 
+      (typeof import.meta !== "undefined" && import.meta.env?.USE_AI_SUMMARY) ||
+      (typeof process !== "undefined" && process.env?.USE_AI_SUMMARY);
+    
+    const isEnabled = useAiSummary === "true";
+    
+    // Log for debugging in Cloudflare
+    console.log("🔍 AI Summary Feature Check:", {
+      runtimeValue: this.runtime?.USE_AI_SUMMARY,
+      importMetaValue: typeof import.meta !== "undefined" ? import.meta.env?.USE_AI_SUMMARY : "N/A",
+      processEnvValue: typeof process !== "undefined" ? process.env?.USE_AI_SUMMARY : "N/A",
+      finalValue: useAiSummary,
+      isEnabled,
+    });
+    
+    return isEnabled;
   }
 
   /**
@@ -41,10 +60,15 @@ export class StatementService {
    * @returns AI-generated summary or null if generation fails
    */
   private async generateAiSummary(statementText: string): Promise<string | null> {
+    console.log("📝 Starting AI summary generation...");
+    
     // Check if AI summary is enabled
     if (!this.isAiSummaryEnabled()) {
+      console.log("❌ AI Summary is disabled");
       return null;
     }
+
+    console.log("✅ AI Summary is enabled, proceeding with generation");
 
     try {
       // Define JSON schema for the summary response
@@ -67,6 +91,9 @@ export class StatementService {
         },
       };
 
+      console.log("🤖 Calling OpenRouter API to generate summary...");
+      console.log("📄 Statement text length:", statementText.length, "characters");
+
       // Generate summary using OpenRouter
       const result = await chatCompletion<{ summary: string }>({
         model: "openai/gpt-4o-mini",
@@ -78,12 +105,21 @@ export class StatementService {
           temperature: 0.3, // Low temperature for consistent, factual summaries
           max_tokens: 150,
         },
+        runtime: this.runtime, // Pass runtime for API key access in Cloudflare
       });
 
+      console.log("✅ AI Summary generated successfully:", result.content.summary);
       return result.content.summary;
     } catch (error) {
       // Log error but don't fail the statement creation
       console.error("❌ Failed to generate AI summary:", error);
+      if (error instanceof Error) {
+        console.error("❌ Error details:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        });
+      }
       return null;
     }
   }
@@ -550,6 +586,10 @@ export class StatementService {
     command: CreateStatementCommand,
     authenticatedUserId: string
   ): Promise<StatementDetailDTO | null> {
+    console.log("📝 Creating new statement...");
+    console.log("👤 User ID:", authenticatedUserId);
+    console.log("🏛️ Politician ID:", command.politician_id);
+    
     // Verify politician exists
     const politicianExists = await this.verifyPoliticianExists(command.politician_id);
     if (!politicianExists) {
@@ -557,15 +597,22 @@ export class StatementService {
     }
 
     // Generate AI summary if enabled
+    console.log("🤖 Attempting to generate AI summary...");
     let finalStatementText = command.statement_text;
     const aiSummary = await this.generateAiSummary(command.statement_text);
 
     // Append AI summary if generated successfully
     if (aiSummary) {
+      console.log("✅ AI summary generated, appending to statement");
+      console.log("📝 Summary:", aiSummary);
       finalStatementText = this.appendSummaryToStatement(command.statement_text, aiSummary);
+      console.log("📄 Final statement length:", finalStatementText.length, "characters");
+    } else {
+      console.log("ℹ️ No AI summary generated, using original statement text");
     }
 
     // Insert statement with potentially modified text
+    console.log("💾 Inserting statement into database...");
     const { data, error } = await this.supabase
       .from("statements")
       .insert({
@@ -578,8 +625,11 @@ export class StatementService {
       .single();
 
     if (error || !data) {
+      console.error("❌ Failed to insert statement:", error);
       throw new Error(`Failed to create statement: ${error?.message || "Unknown error"}`);
     }
+
+    console.log("✅ Statement created successfully, ID:", data.id);
 
     // Fetch the complete statement with joins
     return this.getStatementById(data.id, authenticatedUserId);
