@@ -42,7 +42,7 @@ function getApiKey(providedKey?: string, runtime?: Record<string, string>): stri
     (typeof import.meta !== "undefined" && import.meta.env?.OPENROUTER_API_KEY) ||
     (typeof process !== "undefined" && process.env?.OPENROUTER_API_KEY);
 
-  console.log("🔑 OpenRouter API Key Check:", {
+  console.warn("🔑 OpenRouter API Key Check:", {
     hasProvidedKey: !!providedKey,
     hasRuntimeKey: !!runtime?.OPENROUTER_API_KEY,
     hasImportMetaKey: typeof import.meta !== "undefined" ? !!import.meta.env?.OPENROUTER_API_KEY : false,
@@ -302,7 +302,7 @@ async function makeApiRequest(
   const apiKey = getApiKey(providedApiKey, runtime);
 
   try {
-    const siteUrl = 
+    const siteUrl =
       runtime?.SITE_URL ||
       (typeof import.meta !== "undefined" && import.meta.env?.SITE_URL) ||
       (typeof process !== "undefined" && process.env?.SITE_URL) ||
@@ -469,12 +469,12 @@ export async function chatCompletion<T = string>(
   // Build request
   const request = buildRequest(config);
 
-  console.log("🚀 OpenRouter: Making API request...");
+  console.warn("🚀 OpenRouter: Making API request...");
 
   // Make API request (pass runtime from config)
   const response = await makeApiRequest(request, apiKey, config.runtime);
 
-  console.log("✅ OpenRouter: API request successful");
+  console.warn("✅ OpenRouter: API request successful");
 
   // Extract and return result
   const expectJson = !!config.responseFormat;
